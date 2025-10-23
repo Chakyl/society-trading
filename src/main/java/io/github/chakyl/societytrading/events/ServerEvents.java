@@ -16,6 +16,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerData;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.MerchantMenu;
 import net.minecraft.world.item.NameTagItem;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.EntityInteract;
@@ -36,10 +37,11 @@ public class ServerEvents {
             Entity player = event.getEntity();
             Entity target = event.getTarget();
             if (player instanceof ServerPlayer && target instanceof LivingEntity) {
-                if (event.getItemStack().getItem() instanceof NameTagItem)
-                    nameTagEntity(event.getItemStack(), (Player) player, (LivingEntity) target);
                 Shop shop = ShopData.getShopFromEntity(ShopRegistry.INSTANCE.getValues(), (LivingEntity) target);
                 if (shop != null) {
+                    if (event.getItemStack().getItem() instanceof NameTagItem) {
+                        nameTagEntity(event.getItemStack(), (Player) player, (LivingEntity) target);
+                    }
                     NetworkHooks.openScreen((ServerPlayer) player, new SimpleMenuProvider((containerId, inventory, nPlayer) -> new ShopMenu(containerId, inventory, shop.shopID()), shop.name()), buffer -> {
                         buffer.writeUtf(shop.shopID());
                     });
@@ -54,14 +56,17 @@ public class ServerEvents {
             Entity player = event.getEntity();
             Entity villager = event.getTarget();
             if (player instanceof ServerPlayer && villager instanceof Villager) {
-                if (event.getItemStack().getItem() instanceof NameTagItem)
-                    nameTagEntity(event.getItemStack(), (Player) player, (LivingEntity) villager);
                 VillagerData data = ((Villager) villager).getVillagerData();
                 Shop shop = ShopData.getShopFromVillagerProfession(ShopRegistry.INSTANCE.getValues(), data.getProfession().name());
                 if (shop != null) {
+                    if (event.getItemStack().getItem() instanceof NameTagItem) {
+                        nameTagEntity(event.getItemStack(), (Player) player, (LivingEntity) villager);
+                    }
                     NetworkHooks.openScreen((ServerPlayer) player, new SimpleMenuProvider((containerId, inventory, nPlayer) -> new ShopMenu(containerId, inventory, shop.shopID()), shop.name()), buffer -> {
                         buffer.writeUtf(shop.shopID());
                     });
+                    int experience = ((Villager) villager).getVillagerXp();
+                    ((Villager) villager).setVillagerXp(experience > 0 ? experience : 1);
                     event.setCancellationResult(InteractionResult.SUCCESS);
                     event.setCanceled(true);
                 }

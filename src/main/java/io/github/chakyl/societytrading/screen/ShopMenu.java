@@ -58,7 +58,7 @@ public class ShopMenu extends AbstractContainerMenu {
     private final Slot resultSlot;
     private final Container playerInventory;
     private ShopOffer selectedTrade;
-    private final ShopOffers trades;
+    private ShopOffers trades;
     private int quickSlotIteration = 0;
     private int playerBalance = 0;
     private long lastSoundTime;
@@ -82,15 +82,15 @@ public class ShopMenu extends AbstractContainerMenu {
         this.playerInventory = pPlayerInventory;
         this.playerBalance = fetchPlayerBalance();
         this.containerId = pContainerId;
-        this.resultSlot = this.addSlot(new ShopResultSlot(this.result, 0, 260, 126));
+        this.resultSlot = this.addSlot(new ShopResultSlot(this.result, 0, 276, 148));
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 9; ++j) {
-                this.addSlot(new Slot(pPlayerInventory, j + i * 9 + 9, 88 + j * 18, 122 + i * 18));
+                this.addSlot(new Slot(pPlayerInventory, j + i * 9 + 9, 88 + j * 18, 144 + i * 18));
             }
         }
 
         for (int k = 0; k < 9; ++k) {
-            this.addSlot(new Slot(pPlayerInventory, k, 88 + k * 18, 180));
+            this.addSlot(new Slot(pPlayerInventory, k, 88 + k * 18, 202));
         }
         this.broadcastChanges();
     }
@@ -197,6 +197,7 @@ public class ShopMenu extends AbstractContainerMenu {
         count -= materials.getOrDefault(item, 0);
         if (count > 0) {
             if (count >= remaining) {
+                SocietyTrading.LOGGER.info("Merging " + stack.getTag().toString());
                 materials.merge(item, remaining, Integer::sum);
                 remaining = 0;
             } else {
@@ -207,6 +208,9 @@ public class ShopMenu extends AbstractContainerMenu {
         if (remaining > 0) {
             return null;
         }
+//        if (!stack.getTag().isEmpty()) {
+//            return null;
+//        }
         return materials;
     }
 
@@ -285,6 +289,12 @@ public class ShopMenu extends AbstractContainerMenu {
      */
     public void setShop(Shop shop) {
         this.shop = shop;
+    }
+
+    public void filterOffers(String searchQuery) {
+        ShopOffers availableTrades = ShopData.getFilteredTrades(this.shop.trades(), this.player);
+        if (searchQuery.isEmpty()) this.trades = availableTrades;
+        else this.trades = ShopData.getSearchedTrades(availableTrades, searchQuery);
     }
 
     public ShopOffers getOffers() {

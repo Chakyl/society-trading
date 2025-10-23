@@ -5,6 +5,7 @@ import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.data.Shop;
 import io.github.chakyl.societytrading.network.PacketHandler;
 import io.github.chakyl.societytrading.network.ServerBoundOpenShopMenuPacket;
+import io.github.chakyl.societytrading.util.ScreenUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -27,14 +28,16 @@ public class SelectorScreen extends AbstractContainerScreen<SelectorMenu> {
     private static final int TEXTURE_WIDTH = 512;
     private static final int TEXTURE_HEIGHT = 256;
     private static final int LABEL_Y = 6;
-    private static final int NUMBER_OF_SHOP_BUTTONS = 6;
+    private static final int NUMBER_OF_SHOP_BUTTONS = 8;
     private static final int SHOP_BUTTON_HEIGHT = 20;
-    private static final int SHOP_BUTTON_WIDTH = 137;
+    private static final int SHOP_BUTTON_WIDTH = 153;
     private static final int SCROLLER_HEIGHT = 27;
     private static final int SCROLLER_WIDTH = 6;
     private static final int SCROLL_BAR_HEIGHT = SHOP_BUTTON_HEIGHT * NUMBER_OF_SHOP_BUTTONS;
     private static final int SCROLL_BAR_TOP_POS_Y = 18;
-    private static final int SCROLL_BAR_START_X = 146;
+    private static final int SCROLL_BAR_START_X = 162;
+    private static final int INDICATOR_ICON_SIZE = 8;
+    private static final int INDICATOR_ICONS_START_X = 208;
     private static final Component SHOP_LABEL = Component.translatable("gui.society_trading.shop_selector.title");
     private int shopItem;
     private final ShopSelectorButton[] shopSelectorButtons = new ShopSelectorButton[NUMBER_OF_SHOP_BUTTONS];
@@ -43,8 +46,8 @@ public class SelectorScreen extends AbstractContainerScreen<SelectorMenu> {
 
     public SelectorScreen(SelectorMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);
-        this.imageWidth = 159;
-        this.imageHeight = 145;
+        this.imageWidth = 176; // 31px difference;
+        this.imageHeight = 186; // 27px difference
     }
 
     private void postButtonClick() {
@@ -106,7 +109,7 @@ public class SelectorScreen extends AbstractContainerScreen<SelectorMenu> {
             if (this.scrollOff == i - 1) {
                 i1 = l;
             }
-            pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y + i1, 0, 160.0F, 0.0F, SCROLLER_WIDTH, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+            pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y + i1, 0, 176.0F, 0.0F, SCROLLER_WIDTH, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         } else {
             pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y, 0, 199, 0.0F, SCROLLER_WIDTH, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         }
@@ -138,6 +141,13 @@ public class SelectorScreen extends AbstractContainerScreen<SelectorMenu> {
                     pGuiGraphics.pose().translate(0.0F, 0.0F, 100.0F);
                     int j1 = k + 14;
                     pGuiGraphics.drawString(this.font, shop.name(), l, j1 + 5, 16777215, true);
+                    if (!shop.seasonsRequired().isEmpty()) {
+
+                        pGuiGraphics.blit(GUI_LOCATION, l+ SHOP_BUTTON_WIDTH - 24, j1  + 5, 0, INDICATOR_ICONS_START_X + (8 * ScreenUtils.getSeasonOrder(this.menu.getLevel())), 0.0F, INDICATOR_ICON_SIZE, INDICATOR_ICON_SIZE, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+                    }
+                    if (!shop.stageRequired().isEmpty() || !shop.stageOverride().isEmpty()) {
+                        pGuiGraphics.blit(GUI_LOCATION, l + SHOP_BUTTON_WIDTH - 24, j1  + 5, 0, INDICATOR_ICONS_START_X + (INDICATOR_ICON_SIZE * 4), 0.0F, INDICATOR_ICON_SIZE, INDICATOR_ICON_SIZE, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+                    }
                     pGuiGraphics.pose().popPose();
                     k += 20;
                     ++i1;

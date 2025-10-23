@@ -13,7 +13,6 @@ public class GeneralUtils {
                 if (pTarget instanceof Mob) {
                     ((Mob) pTarget).setPersistenceRequired();
                 }
-
                 pStack.shrink(1);
             }
         }

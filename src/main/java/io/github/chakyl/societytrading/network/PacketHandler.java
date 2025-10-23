@@ -29,13 +29,19 @@ public class PacketHandler {
                 .consumerMainThread(ServerBoundOpenShopMenuPacket::handle)
                 .add();
 
-        INSTANCE.messageBuilder(ServerBoundTriggerBalanceSyncPacket.class, 2, NetworkDirection.PLAY_TO_SERVER)
+        INSTANCE.messageBuilder(ServerBoundSearchPacket.class, 2, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ServerBoundSearchPacket::encode)
+                .decoder(ServerBoundSearchPacket::new)
+                .consumerMainThread(ServerBoundSearchPacket::handle)
+                .add();
+
+        INSTANCE.messageBuilder(ServerBoundTriggerBalanceSyncPacket.class, 3, NetworkDirection.PLAY_TO_SERVER)
                 .encoder(ServerBoundTriggerBalanceSyncPacket::encode)
                 .decoder(ServerBoundTriggerBalanceSyncPacket::new)
                 .consumerMainThread(ServerBoundTriggerBalanceSyncPacket::handle)
                 .add();
 
-        INSTANCE.messageBuilder(ClientBoundBalancePacket.class, 3, NetworkDirection.PLAY_TO_CLIENT)
+        INSTANCE.messageBuilder(ClientBoundBalancePacket.class, 4, NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(ClientBoundBalancePacket::encode)
                 .decoder(ClientBoundBalancePacket::new)
                 .consumerMainThread(ClientBoundBalancePacket::handle)

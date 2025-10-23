@@ -72,7 +72,13 @@ public class ShopData {
         }
         return newTrades;
     }
-
+    public static ShopOffers getSearchedTrades(ShopOffers trades, String searchQuery) {
+        ShopOffers newTrades = new ShopOffers();
+        for (ShopOffer trade : trades) {
+            if (trade.getResult().getDisplayName().getContents().toString().contains(searchQuery)) newTrades.add(trade);
+        }
+        return newTrades;
+    }
     public static String formatPrice(String number) {
         return formatPrice(number, true);
     }

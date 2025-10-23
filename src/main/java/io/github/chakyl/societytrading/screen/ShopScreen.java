@@ -1,9 +1,11 @@
 package io.github.chakyl.societytrading.screen;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.ithundxr.createnumismatics.registry.NumismaticsTags;
 import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.network.PacketHandler;
+import io.github.chakyl.societytrading.network.ServerBoundSearchPacket;
 import io.github.chakyl.societytrading.network.ServerBoundTradeButtonClickPacket;
 import io.github.chakyl.societytrading.network.ServerBoundTriggerBalanceSyncPacket;
 import io.github.chakyl.societytrading.trading.ShopOffer;
@@ -13,12 +15,16 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
+import net.minecraft.client.searchtree.SearchTree;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.api.distmarker.Dist;
@@ -26,6 +32,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 
 import static io.github.chakyl.societytrading.util.ShopData.formatPrice;
 
@@ -41,25 +49,26 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
     private static final int SELL_ITEM_2_X = 35;
     private static final int BUY_ITEM_X = 68;
     private static final int LABEL_Y = 6;
-    private static final int NUMBER_OF_OFFER_BUTTONS = 4;
+    private static final int NUMBER_OF_OFFER_BUTTONS = 5;
     private static final int TRADE_BUTTON_X = 5;
     private static final int TRADE_BUTTON_HEIGHT = 22;
-    private static final int TRADE_BUTTON_WIDTH = 185;
+    private static final int TRADE_BUTTON_WIDTH = 201;
     private static final int SCROLLER_HEIGHT = 27;
     private static final int SCROLLER_WIDTH = 6;
     private static final int SCROLL_BAR_HEIGHT = TRADE_BUTTON_HEIGHT * NUMBER_OF_OFFER_BUTTONS;
     private static final int SCROLL_BAR_TOP_POS_Y = 18;
-    private static final int SCROLL_BAR_START_X = 274;
-    private static final Component TRADES_LABEL = Component.translatable("merchant.trades");
+    private static final int SCROLL_BAR_START_X = 290;
+    private static final Component TRADES_LABEL = Component.translatable("gui.society_trading.search_trades");
     private int shopItem;
     private final TradeOfferButton[] tradeOfferButtons = new TradeOfferButton[NUMBER_OF_OFFER_BUTTONS];
     int scrollOff;
     private boolean isDragging;
+    private EditBox searchBox;
 
     public ShopScreen(ShopMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);
-        this.imageWidth = 288;
-        this.imageHeight = 204;
+        this.imageWidth = 304;  // 16px increase
+        this.imageHeight = 226; // 22px increase
     }
 
     private void postButtonClick() {
@@ -84,17 +93,58 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
             }));
             k += TRADE_BUTTON_HEIGHT;
         }
+        this.searchBox = new EditBox(this.font, i + 210, this.topPos + 6, 60, 9, Component.translatable("itemGroup.search"));
+        this.searchBox.setMaxLength(50);
+        this.searchBox.setBordered(false);
+        this.searchBox.setVisible(true);
+        this.searchBox.setCanLoseFocus(false);
+        this.searchBox.setFocused(true);
+        this.searchBox.setWidth(60);
+        this.searchBox.setX(i + 210);
+        this.searchBox.setTextColor(16777215);
+        this.addWidget(this.searchBox);
+    }
 
+    public boolean charTyped(char pCodePoint, int pModifiers) {
+        String s = this.searchBox.getValue();
+        if (this.searchBox.charTyped(pCodePoint, pModifiers)) {
+            if (!Objects.equals(s, this.searchBox.getValue())) {
+                this.refreshSearchResults();
+            }
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean keyPressed(int pKeyCode, int pScanCode, int pModifiers) {
+        String s = this.searchBox.getValue();
+        if (this.searchBox.keyPressed(pKeyCode, pScanCode, pModifiers)) {
+            if (!Objects.equals(s, this.searchBox.getValue())) {
+                this.refreshSearchResults();
+            }
+
+            return true;
+        } else {
+            return this.searchBox.isFocused() && this.searchBox.isVisible() && pKeyCode != 256 ? true : super.keyPressed(pKeyCode, pScanCode, pModifiers);
+        }
+    }
+
+    private void refreshSearchResults() {
+        String s = this.searchBox.getValue();
+        this.menu.filterOffers(s);
+        PacketHandler.sendToServer(new ServerBoundSearchPacket(s));
     }
 
     protected void renderLabels(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
-        int centralX = (5 - this.font.width(TRADES_LABEL) / 2) + 102;
+        int centralX = (5 - this.font.width(TRADES_LABEL) / 2) + 122;
         pGuiGraphics.drawString(this.font, this.title, 6, LABEL_Y, 4210752, false);
         pGuiGraphics.drawString(this.font, TRADES_LABEL, centralX, LABEL_Y, 4210752, false);
-        pGuiGraphics.drawString(this.font, this.playerInventoryTitle, centralX, 110, 4210752, false);
+        pGuiGraphics.drawString(this.font, this.playerInventoryTitle, centralX, 132, 4210752, false);
         if (this.menu.getPlayerBalance() > 0) {
             Component priceStr = Component.translatable("gui.society_trading.balance", "§0" + formatPrice(Integer.valueOf(this.menu.getPlayerBalance()).toString(), false));
-            pGuiGraphics.drawString(this.font, priceStr, (centralX * 3) - font.width(priceStr) + 6, LABEL_Y, 16777215, false);
+            pGuiGraphics.drawString(this.font, priceStr, (centralX * 3) - font.width(priceStr) + 28, 132, 16777215, false);
 
         }
     }
@@ -102,6 +152,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
     protected void renderBg(GuiGraphics pGuiGraphics, float pPartialTick, int pMouseX, int pMouseY) {
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
+        this.searchBox.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         pGuiGraphics.blit(GUI_LOCATION, i, j, 0, 0.0F, 0.0F, this.imageWidth, this.imageHeight, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         pGuiGraphics.blit(new ResourceLocation(this.menu.getTexture() + ".png"), i + 6, j + 18, 0, 0.0F, 0.0F, 64, 64, 64, 64);
     }
@@ -116,9 +167,9 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
             if (this.scrollOff == i - 1) {
                 i1 = l;
             }
-            pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y + i1, 0, 288.0F, 0.0F, 6, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+            pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y + i1, 0, 304.0F, 0.0F, 6, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         } else {
-            pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y, 0, 294.0F, 0.0F, 6, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+            pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y, 0, 310.0F, 0.0F, 6, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         }
 
     }
@@ -170,7 +221,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
                         pGuiGraphics.drawString(this.font, priceStr, l + TRADE_BUTTON_WIDTH - font.width(priceStr) - priceOffset, j1 + 4, 16777215, true);
                     }
                     //result
-                    int lineLength = 96;
+                    int lineLength = 102;
                     Component itemName = itemstack3.getHoverName();
                     boolean oneLine = this.font.split(itemName, lineLength).size() == 1;
                     pGuiGraphics.renderFakeItem(itemstack3, l + 1, j1);
@@ -183,18 +234,16 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
                     ++i1;
                 }
             }
-
-            for (TradeOfferButton ShopScreen$tradeofferbutton : this.tradeOfferButtons) {
-                if (ShopScreen$tradeofferbutton.isHoveredOrFocused()) {
-                    ShopScreen$tradeofferbutton.renderToolTip(pGuiGraphics, pMouseX, pMouseY);
-                }
-
-                ShopScreen$tradeofferbutton.visible = ShopScreen$tradeofferbutton.index < this.menu.getOffers().size();
+        }
+        for (TradeOfferButton ShopScreen$tradeofferbutton : this.tradeOfferButtons) {
+            if (ShopScreen$tradeofferbutton.isHoveredOrFocused()) {
+                ShopScreen$tradeofferbutton.renderToolTip(pGuiGraphics, pMouseX, pMouseY);
             }
 
-            RenderSystem.enableDepthTest();
+            ShopScreen$tradeofferbutton.visible = ShopScreen$tradeofferbutton.index < this.menu.getOffers().size();
         }
 
+        RenderSystem.enableDepthTest();
         this.renderTooltip(pGuiGraphics, pMouseX, pMouseY);
     }
 
