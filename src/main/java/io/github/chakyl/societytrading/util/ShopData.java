@@ -75,7 +75,7 @@ public class ShopData {
     public static ShopOffers getSearchedTrades(ShopOffers trades, String searchQuery) {
         ShopOffers newTrades = new ShopOffers();
         for (ShopOffer trade : trades) {
-            if (trade.getResult().getDisplayName().getContents().toString().contains(searchQuery)) newTrades.add(trade);
+            if (trade.getResult().getDisplayName().getString().toLowerCase().contains(searchQuery.toLowerCase())) newTrades.add(trade);
         }
         return newTrades;
     }

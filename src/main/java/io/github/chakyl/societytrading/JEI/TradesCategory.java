@@ -33,7 +33,7 @@ public class TradesCategory implements IRecipeCategory<TradeRecipe> {
 
 
     public TradesCategory(IGuiHelper guiHelper) {
-        this.background = guiHelper.createDrawable(TRADE_TEXTURE, 0, 0, 128, 56);
+        this.background = guiHelper.createDrawable(TRADE_TEXTURE, 0, 0, 164, 56);
         this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(Items.EMERALD));
         this.name = Component.translatable("jei.society_trading.category.trades");
     }

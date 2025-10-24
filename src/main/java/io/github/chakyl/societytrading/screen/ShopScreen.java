@@ -1,6 +1,5 @@
 package io.github.chakyl.societytrading.screen;
 
-import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.ithundxr.createnumismatics.registry.NumismaticsTags;
 import io.github.chakyl.societytrading.SocietyTrading;
@@ -17,14 +16,11 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
-import net.minecraft.client.searchtree.SearchTree;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.api.distmarker.Dist;
@@ -32,7 +28,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
 import static io.github.chakyl.societytrading.util.ShopData.formatPrice;
@@ -134,6 +129,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
     private void refreshSearchResults() {
         String s = this.searchBox.getValue();
         this.menu.filterOffers(s);
+        this.scrollOff = 0;
         PacketHandler.sendToServer(new ServerBoundSearchPacket(s));
     }
 
@@ -144,7 +140,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
         pGuiGraphics.drawString(this.font, this.playerInventoryTitle, centralX, 132, 4210752, false);
         if (this.menu.getPlayerBalance() > 0) {
             Component priceStr = Component.translatable("gui.society_trading.balance", "§0" + formatPrice(Integer.valueOf(this.menu.getPlayerBalance()).toString(), false));
-            pGuiGraphics.drawString(this.font, priceStr, (centralX * 3) - font.width(priceStr) + 28, 132, 16777215, false);
+            pGuiGraphics.drawString(this.font, priceStr, (centralX * 3) - font.width(priceStr) + 30, 132, 16777215, false);
 
         }
     }

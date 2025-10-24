@@ -17,6 +17,7 @@ import io.github.chakyl.societytrading.util.ShopData;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenCustomHashMap;
 import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -140,7 +141,7 @@ public class ShopMenu extends AbstractContainerMenu {
     public void trade(ShopOffer offer, Inventory pPlayerInventory) {
         Map<Item, Integer> items = this.getConsumedMaterialItems(offer);
         if (items != null) {
-            this.removeItems(items, pPlayerInventory);
+            this.removeItems(items, pPlayerInventory, offer);
         }
         if (this.playerBalance > 0 && offer.hasNumismaticsCost()) {
             this.getPlayerAccount().deduct(offer.getNumismaticsCost());
@@ -149,23 +150,46 @@ public class ShopMenu extends AbstractContainerMenu {
 
     }
 
-    private void removeItems(Map<Item, Integer> items, Inventory pPlayerInventory) {
+    private boolean hasItemWithNbt(Inventory pPlayerInventory, Item item, CompoundTag nbt) {
+        List<Pair<Container, Runnable>> foundItems = new ArrayList<>();
+        IntStream.range(0, pPlayerInventory.getContainerSize()).forEach(slot -> {
+            ItemStack stack = pPlayerInventory.getItem(slot);
+            if (stack.isEmpty() || stack.isDamaged())
+                return;
+            if (stack.getItem() == item && stack.getTag() != null && stack.getTag().equals(nbt))
+                foundItems.add(Pair.of(pPlayerInventory, () -> stack.setCount(0)));
+        });
+        return !foundItems.isEmpty();
+    }
+
+    private void removeItems(Map<Item, Integer> items, Inventory pPlayerInventory, ShopOffer offer) {
         List<Pair<Container, Runnable>> transactions = new ArrayList<>();
         IntStream.range(0, pPlayerInventory.getContainerSize()).forEach(slot -> {
+            boolean offerIsExact = true;
             ItemStack stack = pPlayerInventory.getItem(slot);
             if (stack.isEmpty() || stack.isDamaged())
                 return;
             Item item = stack.getItem();
             Integer count = items.get(item);
             if (count != null) {
-                if (stack.getCount() < count) {
-                    count -= stack.getCount();
-                    items.put(item, count);
-                    transactions.add(Pair.of(pPlayerInventory, () -> stack.setCount(0)));
-                } else {
-                    Integer finalCount = count;
-                    transactions.add(Pair.of(pPlayerInventory, () -> stack.shrink(finalCount)));
-                    items.remove(item);
+                if (offer.getCostA().getTag() != null && item == offer.getCostA().getItem()) {
+                    if (stack.getTag() == null) offerIsExact = false;
+                    else if (!stack.getTag().equals(offer.getCostA().getTag())) offerIsExact = false;
+                }
+                if (offer.getCostB().getTag() != null && item == offer.getCostB().getItem()) {
+                    if (stack.getTag() == null) offerIsExact = false;
+                    else if (!stack.getTag().equals(offer.getCostB().getTag())) offerIsExact = false;
+                }
+                if (offerIsExact) {
+                    if (stack.getCount() < count) {
+                        count -= stack.getCount();
+                        items.put(item, count);
+                        transactions.add(Pair.of(pPlayerInventory, () -> stack.setCount(0)));
+                    } else {
+                        Integer finalCount = count;
+                        transactions.add(Pair.of(pPlayerInventory, () -> stack.shrink(finalCount)));
+                        items.remove(item);
+                    }
                 }
             }
         });
@@ -196,8 +220,10 @@ public class ShopMenu extends AbstractContainerMenu {
         int count = counts.getOrDefault(item, 0);
         count -= materials.getOrDefault(item, 0);
         if (count > 0) {
+            if (stack.getTag() != null) {
+                if (!hasItemWithNbt(this.player.getInventory(), item, stack.getTag())) return null;
+            }
             if (count >= remaining) {
-                SocietyTrading.LOGGER.info("Merging " + stack.getTag().toString());
                 materials.merge(item, remaining, Integer::sum);
                 remaining = 0;
             } else {
@@ -208,9 +234,6 @@ public class ShopMenu extends AbstractContainerMenu {
         if (remaining > 0) {
             return null;
         }
-//        if (!stack.getTag().isEmpty()) {
-//            return null;
-//        }
         return materials;
     }
 
