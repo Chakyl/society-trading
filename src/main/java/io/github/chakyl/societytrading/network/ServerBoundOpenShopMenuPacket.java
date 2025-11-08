@@ -14,21 +14,26 @@ import net.minecraft.world.SimpleMenuProvider;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.network.NetworkHooks;
 
+import java.util.UUID;
 import java.util.function.Supplier;
 
 public class ServerBoundOpenShopMenuPacket {
     private final String shopID;
+    private final UUID entityUUID;
 
-    public ServerBoundOpenShopMenuPacket(String shopID) {
+    public ServerBoundOpenShopMenuPacket(String shopID, UUID entityUUID) {
         this.shopID = shopID;
+        this.entityUUID = entityUUID;
     }
 
     public ServerBoundOpenShopMenuPacket(FriendlyByteBuf buffer) {
-        this(buffer.readUtf());
+        this(buffer.readUtf(), buffer.readUUID());
     }
 
     public void encode(FriendlyByteBuf buffer) {
         buffer.writeUtf(this.shopID);
+        if (this.entityUUID != null) buffer.writeUUID(this.entityUUID);
+        else buffer.writeUUID(UUID.randomUUID());
     }
 
     public void handle(Supplier<NetworkEvent.Context> context) {
@@ -36,8 +41,9 @@ public class ServerBoundOpenShopMenuPacket {
         if (player != null) {
             if (player.containerMenu instanceof SelectorMenu menu && menu.stillValid(player)) {
                 DynamicHolder<Shop> shop = ShopRegistry.INSTANCE.holder(new ResourceLocation("society_trading:" + shopID));
-                NetworkHooks.openScreen(player, new SimpleMenuProvider((containerId, inventory, nPlayer) -> new ShopMenu(containerId, inventory, this.shopID), shop.get().name()), buffer -> {
+                NetworkHooks.openScreen(player, new SimpleMenuProvider((containerId, inventory, nPlayer) -> new ShopMenu(containerId, inventory, this.shopID, this.entityUUID), shop.get().name()), buffer -> {
                     buffer.writeUtf(this.shopID);
+                    buffer.writeUUID(this.entityUUID);
                 });
             }
         }

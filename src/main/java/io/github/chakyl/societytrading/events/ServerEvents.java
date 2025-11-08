@@ -42,8 +42,9 @@ public class ServerEvents {
                     if (event.getItemStack().getItem() instanceof NameTagItem) {
                         nameTagEntity(event.getItemStack(), (Player) player, (LivingEntity) target);
                     }
-                    NetworkHooks.openScreen((ServerPlayer) player, new SimpleMenuProvider((containerId, inventory, nPlayer) -> new ShopMenu(containerId, inventory, shop.shopID()), shop.name()), buffer -> {
+                    NetworkHooks.openScreen((ServerPlayer) player, new SimpleMenuProvider((containerId, inventory, nPlayer) -> new ShopMenu(containerId, inventory, shop.shopID(), target.getUUID()), shop.name()), buffer -> {
                         buffer.writeUtf(shop.shopID());
+                        buffer.writeUUID(target.getUUID());
                     });
                     event.setCancellationResult(InteractionResult.SUCCESS);
                     event.setCanceled(true);
@@ -62,8 +63,9 @@ public class ServerEvents {
                     if (event.getItemStack().getItem() instanceof NameTagItem) {
                         nameTagEntity(event.getItemStack(), (Player) player, (LivingEntity) villager);
                     }
-                    NetworkHooks.openScreen((ServerPlayer) player, new SimpleMenuProvider((containerId, inventory, nPlayer) -> new ShopMenu(containerId, inventory, shop.shopID()), shop.name()), buffer -> {
+                    NetworkHooks.openScreen((ServerPlayer) player, new SimpleMenuProvider((containerId, inventory, nPlayer) -> new ShopMenu(containerId, inventory, shop.shopID(), villager.getUUID()), shop.name()), buffer -> {
                         buffer.writeUtf(shop.shopID());
+                        buffer.writeUUID(villager.getUUID());
                     });
                     int experience = ((Villager) villager).getVillagerXp();
                     ((Villager) villager).setVillagerXp(experience > 0 ? experience : 1);
@@ -85,7 +87,7 @@ public class ServerEvents {
                 }
                 Shop shop = ShopData.getShopFromBlockState(ShopRegistry.INSTANCE.getValues(), clickedBlock);
                 if (shop != null) {
-                    NetworkHooks.openScreen((ServerPlayer) player, new SimpleMenuProvider((containerId, inventory, nPlayer) -> new ShopMenu(containerId, inventory, shop.shopID()), shop.name()), buffer -> {
+                    NetworkHooks.openScreen((ServerPlayer) player, new SimpleMenuProvider((containerId, inventory, nPlayer) -> new ShopMenu(containerId, inventory, shop.shopID(), null), shop.name()), buffer -> {
                         buffer.writeUtf(shop.shopID());
                     });
                     event.setCancellationResult(InteractionResult.SUCCESS);

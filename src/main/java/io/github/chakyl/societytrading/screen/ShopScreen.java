@@ -93,7 +93,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
         this.searchBox.setBordered(false);
         this.searchBox.setVisible(true);
         this.searchBox.setCanLoseFocus(false);
-        this.searchBox.setFocused(true);
+        this.searchBox.setFocused(false);
         this.searchBox.setWidth(60);
         this.searchBox.setX(i + 210);
         this.searchBox.setTextColor(16777215);

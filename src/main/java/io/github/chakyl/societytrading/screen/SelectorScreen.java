@@ -55,7 +55,7 @@ public class SelectorScreen extends AbstractContainerScreen<SelectorMenu> {
         int searchIndex = 0;
         for (Shop shop : shops) {
             if (searchIndex == this.shopItem) {
-                PacketHandler.sendToServer(new ServerBoundOpenShopMenuPacket(shop.shopID()));
+                PacketHandler.sendToServer(new ServerBoundOpenShopMenuPacket(shop.shopID(), null));
             }
             searchIndex++;
         }

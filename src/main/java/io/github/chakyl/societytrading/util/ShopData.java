@@ -3,8 +3,12 @@ package io.github.chakyl.societytrading.util;
 import dev.latvian.mods.kubejs.stages.Stages;
 import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.data.Shop;
+import io.github.chakyl.societytrading.trading.RandomSetShopOffers;
 import io.github.chakyl.societytrading.trading.ShopOffer;
 import io.github.chakyl.societytrading.trading.ShopOffers;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
@@ -38,13 +42,19 @@ public class ShopData {
         }
         ShopComparator comparator = new ShopComparator();
         comparator.setSortingBy(ShopComparator.Order.ID);
-        Collections.sort(newShops, comparator);
+        newShops.sort(Comparator.comparingInt(Shop::selectorWeight));
         return newShops;
     }
 
     public static Shop getShopFromEntity(Collection<Shop> shops, LivingEntity entity) {
         for (Shop shop : shops) {
-            if (shop.entity() == entity.getType()) return shop;
+            if (shop.entity() == entity.getType()) {
+                if (!shop.entityData().isEmpty()) {
+                    if (entity.saveWithoutId(new CompoundTag()).toString().contains(shop.entityData())) return shop;
+                } else {
+                    return shop;
+                }
+            }
         }
         return null;
     }
@@ -63,8 +73,44 @@ public class ShopData {
         return null;
     }
 
-    public static ShopOffers getFilteredTrades(ShopOffers trades, Player player) {
+    public static RandomSource getPerDayTrades(Player player) {
+        int day = (Mth.floor((float) player.level().dayTime() / 24000) + 1);
+        return RandomSource.create(day);
+    }
+
+    public static RandomSource getPerEntityTrades(UUID uuid) {
+        return RandomSource.create(uuid.getMostSignificantBits() ^ uuid.getLeastSignificantBits());
+    }
+
+    public static ShopOffers getRandomSetOffers(List<RandomSetShopOffers> randomSetShopOffersList, Player player, UUID targetUUID) {
+        ShopOffers randomizedOffers = new ShopOffers();
+        for (RandomSetShopOffers randomSet : randomSetShopOffersList) {
+            if (randomSet.playerCanSee(player)) {
+                RandomSource random = switch (randomSet.getRandomStyle()) {
+                    case PER_DAY -> getPerDayTrades(player);
+                    case PER_PLAYER -> getPerEntityTrades(player.getUUID());
+                    case PER_ENTITY -> getPerEntityTrades(targetUUID == null ? player.getUUID() : targetUUID);
+                    default -> player.level().random;
+                };
+                RandomSetShopOffers rsClone = (RandomSetShopOffers) randomSet.clone();
+                for (int i = 0; i < randomSet.getRolledCount(); i++) {
+                    if (rsClone.size() > 1) {
+                        int roll = random.nextInt(rsClone.size());
+                        randomizedOffers.add(rsClone.get(roll));
+                        rsClone.remove(roll);
+                    } else {
+                        randomizedOffers.add(rsClone.get(0));
+                        SocietyTrading.LOGGER.warn("random_set for the shop has a higher rolled_count (" + randomSet.getRolledCount() + ") than there are trades (" + randomSet.size() + ")!");
+                    }
+                }
+            }
+        }
+        return randomizedOffers;
+    }
+
+    public static ShopOffers getFilteredTrades(ShopOffers trades, List<RandomSetShopOffers> randomSetShopOffers, Player player, UUID targetUUID) {
         ShopOffers newTrades = new ShopOffers();
+        newTrades.addAll(getRandomSetOffers(randomSetShopOffers, player, targetUUID));
         for (ShopOffer trade : trades) {
             if (trade.playerCanSee(player)) {
                 newTrades.add(trade);
@@ -72,13 +118,16 @@ public class ShopData {
         }
         return newTrades;
     }
+
     public static ShopOffers getSearchedTrades(ShopOffers trades, String searchQuery) {
         ShopOffers newTrades = new ShopOffers();
         for (ShopOffer trade : trades) {
-            if (trade.getResult().getDisplayName().getString().toLowerCase().contains(searchQuery.toLowerCase())) newTrades.add(trade);
+            if (trade.getResult().getDisplayName().getString().toLowerCase().contains(searchQuery.toLowerCase()))
+                newTrades.add(trade);
         }
         return newTrades;
     }
+
     public static String formatPrice(String number) {
         return formatPrice(number, true);
     }

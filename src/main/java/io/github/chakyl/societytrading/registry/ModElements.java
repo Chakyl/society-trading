@@ -55,7 +55,7 @@ public class ModElements {
     }
 
     public static class Menus {
-        public static final RegistryObject<MenuType<ShopMenu>> SHOP_MENU = R.menu("shop_menu", () -> MenuUtil.bufType((windowId, playerInventory, data) -> new ShopMenu(windowId, playerInventory, data.readUtf())));
+        public static final RegistryObject<MenuType<ShopMenu>> SHOP_MENU = R.menu("shop_menu", () -> MenuUtil.bufType((windowId, playerInventory, data) -> new ShopMenu(windowId, playerInventory, data.readUtf(), data.readUUID())));
         public static final RegistryObject<MenuType<SelectorMenu>> SELECTOR_MENU = R.menu("selector_menu", () -> MenuUtil.type(SelectorMenu::new));
 
         private static void bootstrap() {

@@ -13,6 +13,8 @@ import com.mojang.serialization.JsonOps;
 import dev.shadowsoffire.placebo.codec.CodecProvider;
 import dev.shadowsoffire.placebo.json.ItemAdapter;
 import io.github.chakyl.societytrading.SocietyTrading;
+import io.github.chakyl.societytrading.trading.RandomSetShopOffers;
+import io.github.chakyl.societytrading.trading.RandomStyle;
 import io.github.chakyl.societytrading.trading.ShopOffer;
 import io.github.chakyl.societytrading.trading.ShopOffers;
 import net.minecraft.core.registries.Registries;
@@ -43,31 +45,35 @@ import java.util.Objects;
  * @param texture            The resource location of the texture used for the shopkeeper
  * @param villagerProfession Villager Profession that enables the shop screen to show when interacted
  * @param entity             Living entity that opens the shop screen to show when interacted
+ * @param entityData         Data on the passed entity that must exist to open the shop
  * @param blockTag           Block tag that opens the scree
  * @param hiddenFromSelector Shops is never shown on the Shop Selector list
+ * @param selectorWeight     Weight of shop in Shop Selector list for order
  * @param jeiCatalyst        Item used as a catalyst in JEI
  * @param stageRequired      KubeJs stage the player needs to have to see the shop
  * @param stageOverride      KubeJs stage that always allows the player to see the shop
  * @param seasonsRequired    Serene Seasons season to display the shop
  * @param trades             Trade object
+ * @param randomSets         Sets of randomly rolled trades
  */
 public record Shop(String shopID, MutableComponent name, String texture, String villagerProfession,
-                   EntityType<? extends LivingEntity> entity, TagKey<Block> blockTag, Boolean hiddenFromSelector,
-                   ItemStack jeiCatalyst,
-                   String stageRequired,
-                   String stageOverride,
-                   List<String> seasonsRequired, ShopOffers trades) implements CodecProvider<Shop> {
+                   EntityType<? extends LivingEntity> entity, String entityData, TagKey<Block> blockTag,
+                   Boolean hiddenFromSelector, int selectorWeight, ItemStack jeiCatalyst,
+                   String stageRequired, String stageOverride, List<String> seasonsRequired,
+                   ShopOffers trades, List<RandomSetShopOffers> randomSets) implements CodecProvider<Shop> {
 
     public static final Codec<Shop> CODEC = new ShopCodec();
     public static final List<String> POSSIBLE_SEASONS = Arrays.asList("early_spring", "mid_spring", "late_spring", "early_summer", "mid_summer", "late_summer", "early_autumn", "mid_autumn", "late_autumn", "early_winter", "mid_winter", "late_winter");
+    public static final List<String> POSSIBLE_RANDOM_STYLES = Arrays.asList("per_day", "per_player", "per_entity", "default");
 
     public Shop(Shop other) {
-        this(other.shopID, other.name, other.texture, other.villagerProfession, other.entity, other.blockTag, other.hiddenFromSelector, other.jeiCatalyst, other.stageRequired, other.stageOverride, other.seasonsRequired, other.trades);
+        this(other.shopID, other.name, other.texture, other.villagerProfession, other.entity, other.entityData, other.blockTag, other.hiddenFromSelector, other.selectorWeight, other.jeiCatalyst, other.stageRequired, other.stageOverride, other.seasonsRequired, other.trades, other.randomSets);
     }
 
     public int getColor() {
         return this.name.getStyle().getColor().getValue();
     }
+
 
     public Shop validate(ResourceLocation key) {
         Preconditions.checkNotNull(this.shopID, "Invalid shop ID!");
@@ -81,6 +87,15 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
                 }
             });
         }
+        if (this.randomSets != null) {
+            this.randomSets.forEach((rSet) -> {
+                // Why is Java like that????
+                String randomStyle = rSet.getRandomStyle().toString().toLowerCase().replace("\"", "");
+                if (!POSSIBLE_RANDOM_STYLES.contains(randomStyle)) {
+                    throw new NullPointerException("RandomSet given random style " + randomStyle + " that doesn't exist! Possible values: " + POSSIBLE_RANDOM_STYLES);
+                }
+            });
+        }
         return this;
     }
 
@@ -89,19 +104,103 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
         return CODEC;
     }
 
+    private static JsonArray encodeTradesArray(ShopOffers shopOffersTrades, String shopID) {
+        ResourceLocation key = new ResourceLocation(SocietyTrading.MODID, shopID);
+        JsonArray trades = new JsonArray();
+        for (ShopOffer trade : shopOffersTrades) {
+            JsonObject tradeObj = new JsonObject();
+            JsonElement request = ItemAdapter.ITEM_READER.toJsonTree(trade.getCostA());
+            JsonObject requestJson = request.getAsJsonObject();
+            ResourceLocation requestItemName = new ResourceLocation(requestJson.get("item").getAsString());
+            JsonElement secondRequest = ItemAdapter.ITEM_READER.toJsonTree(trade.getCostB());
+            JsonObject secondRequestJson = secondRequest.getAsJsonObject();
+            ResourceLocation secondRequestItemName = new ResourceLocation(secondRequestJson.get("item").getAsString());
+            JsonElement offer = ItemAdapter.ITEM_READER.toJsonTree(trade.getResult());
+            JsonObject offerJson = offer.getAsJsonObject();
+            ResourceLocation offerItemName = new ResourceLocation(offerJson.get("item").getAsString());
+            if (!"minecraft".equals(offerItemName.getNamespace()) && !key.getNamespace().equals(offerItemName.getNamespace())) {
+                offerJson.addProperty("optional", true);
+            }
+            if (!"minecraft".equals(requestItemName.getNamespace()) && !key.getNamespace().equals(requestItemName.getNamespace())) {
+                requestJson.addProperty("optional", true);
+            }
+            if (!"minecraft".equals(secondRequestItemName.getNamespace()) && !key.getNamespace().equals(secondRequestItemName.getNamespace())) {
+                secondRequestJson.addProperty("optional", true);
+            }
+
+            JsonArray tradeSeasonsRequired = new JsonArray();
+            for (String season : trade.getSeasonsRequired()) {
+                tradeSeasonsRequired.add(season.replace("\"", ""));
+            }
+            tradeObj.add("request", requestJson);
+            tradeObj.add("second_request", secondRequestJson);
+            tradeObj.add("offer", offerJson);
+            if (!Objects.equals(trade.getUnlockDescription(), Component.empty())) {
+                tradeObj.addProperty("unlock_description", ((TranslatableContents) trade.getUnlockDescription().getContents()).getKey());
+            }
+            tradeObj.addProperty("stage_required", trade.getStageRequired());
+            tradeObj.addProperty("stage_override", trade.getStageOverride());
+            tradeObj.add("seasons_required", tradeSeasonsRequired);
+            tradeObj.addProperty("numismatics_cost", trade.getNumismaticsCost());
+            trades.add(tradeObj);
+        }
+        return trades;
+
+    }
+
+    private static ShopOffers decodeTradesArray(JsonObject obj) {
+        ShopOffers trades = new ShopOffers();
+        if (obj.has("trades")) {
+            for (JsonElement json : GsonHelper.getAsJsonArray(obj, "trades")) {
+                if (json.getAsJsonObject().has("offer") && json.getAsJsonObject().has("request")) {
+                    ItemStack request = ItemAdapter.ITEM_READER.fromJson(json.getAsJsonObject().getAsJsonObject("request"), ItemStack.class);
+                    ItemStack offer = ItemAdapter.ITEM_READER.fromJson(json.getAsJsonObject().getAsJsonObject("offer"), ItemStack.class);
+                    String tradeStage = "";
+                    String tradeStageOverride = "";
+                    int numismaticsCost = 0;
+                    List<String> tradeSeasonsRequired = new ArrayList<>();
+                    if (json.getAsJsonObject().has("seasons_required")) {
+                        for (JsonElement arrayJson : GsonHelper.getAsJsonArray(json.getAsJsonObject(), "seasons_required")) {
+                            tradeSeasonsRequired.add(String.valueOf(arrayJson).replace("\"", ""));
+                        }
+                    }
+                    MutableComponent tradeUnlockDescription = Component.empty();
+                    if (json.getAsJsonObject().has("unlock_description")) {
+                        tradeUnlockDescription = Component.translatable(GsonHelper.getAsString(json.getAsJsonObject(), "unlock_description"));
+                    }
+                    if (json.getAsJsonObject().has("stage_required"))
+                        tradeStage = GsonHelper.getAsString(json.getAsJsonObject(), "stage_required");
+                    if (json.getAsJsonObject().has("stage_override"))
+                        tradeStageOverride = GsonHelper.getAsString(json.getAsJsonObject(), "stage_override");
+                    if (json.getAsJsonObject().has("numismatics_cost"))
+                        numismaticsCost = GsonHelper.getAsInt(json.getAsJsonObject(), "numismatics_cost");
+                    if (json.getAsJsonObject().has("second_request")) {
+                        ItemStack secondRequest = ItemAdapter.ITEM_READER.fromJson(json.getAsJsonObject().getAsJsonObject("second_request"), ItemStack.class);
+                        trades.add(new ShopOffer(request, secondRequest, offer, tradeUnlockDescription, tradeStage, tradeStageOverride, tradeSeasonsRequired, numismaticsCost));
+                    } else {
+                        trades.add(new ShopOffer(request, offer, tradeUnlockDescription, tradeStage, tradeStageOverride, tradeSeasonsRequired, numismaticsCost));
+                    }
+                }
+
+            }
+        }
+        return trades;
+    }
+
     public static class ShopCodec implements Codec<Shop> {
 
         @Override
         public <T> DataResult<T> encode(Shop input, DynamicOps<T> ops, T prefix) {
             JsonObject obj = new JsonObject();
-            ResourceLocation key = new ResourceLocation(SocietyTrading.MODID, input.shopID);
             obj.addProperty("shop_id", input.shopID);
             obj.addProperty("name", ((TranslatableContents) input.name.getContents()).getKey());
             obj.addProperty("texture", input.texture);
             obj.addProperty("villager_profession", input.villagerProfession);
             obj.addProperty("entity", EntityType.getKey(input.entity).toString());
+            obj.addProperty("entity_data", input.entityData);
             if (input.blockTag != null) obj.addProperty("block_tag", input.blockTag.location().toString());
             obj.addProperty("hidden_from_selector", input.hiddenFromSelector);
+            obj.addProperty("selector_weight", input.selectorWeight);
             obj.add("jei_catalyst", ItemAdapter.ITEM_READER.toJsonTree(input.jeiCatalyst));
             obj.addProperty("stage_required", input.stageRequired);
             obj.addProperty("stage_override", input.stageOverride);
@@ -110,44 +209,27 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
             for (String season : input.seasonsRequired) {
                 seasonsRequired.add(season.replace("\"", ""));
             }
-            JsonArray trades = new JsonArray();
-            obj.add("trades", trades);
-            for (ShopOffer trade : input.trades) {
-                JsonObject tradeObj = new JsonObject();
-                JsonElement request = ItemAdapter.ITEM_READER.toJsonTree(trade.getCostA());
-                JsonObject requestJson = request.getAsJsonObject();
-                ResourceLocation requestItemName = new ResourceLocation(requestJson.get("item").getAsString());
-                JsonElement secondRequest = ItemAdapter.ITEM_READER.toJsonTree(trade.getCostB());
-                JsonObject secondRequestJson = secondRequest.getAsJsonObject();
-                ResourceLocation secondRequestItemName = new ResourceLocation(secondRequestJson.get("item").getAsString());
-                JsonElement offer = ItemAdapter.ITEM_READER.toJsonTree(trade.getResult());
-                JsonObject offerJson = offer.getAsJsonObject();
-                ResourceLocation offerItemName = new ResourceLocation(offerJson.get("item").getAsString());
-                if (!"minecraft".equals(offerItemName.getNamespace()) && !key.getNamespace().equals(offerItemName.getNamespace())) {
-                    offerJson.addProperty("optional", true);
+            obj.add("trades", encodeTradesArray(input.trades, input.shopID));
+            for (RandomSetShopOffers randomSetShopOffers : input.randomSets) {
+                JsonObject rsObject = new JsonObject();
+                rsObject.addProperty("stage_required", randomSetShopOffers.getStageRequired());
+                rsObject.addProperty("stage_override", randomSetShopOffers.getStageOverride());
+                JsonArray rsSeasonsRequired = new JsonArray();
+                for (String season : randomSetShopOffers.getSeasonsRequired()) {
+                    rsSeasonsRequired.add(season.replace("\"", ""));
                 }
-                if (!"minecraft".equals(requestItemName.getNamespace()) && !key.getNamespace().equals(requestItemName.getNamespace())) {
-                    requestJson.addProperty("optional", true);
+                rsObject.add("seasons_required", rsSeasonsRequired);
+                String randomStyle;
+                switch (randomSetShopOffers.getRandomStyle()) {
+                    case PER_DAY -> randomStyle = "per_day";
+                    case PER_PLAYER -> randomStyle = "per_player";
+                    case PER_ENTITY -> randomStyle = "per_entity";
+                    default -> randomStyle = "default";
                 }
-                if (!"minecraft".equals(secondRequestItemName.getNamespace()) && !key.getNamespace().equals(secondRequestItemName.getNamespace())) {
-                    secondRequestJson.addProperty("optional", true);
-                }
+                rsObject.addProperty("random_style", randomStyle);
+                rsObject.addProperty("rolled_count", randomSetShopOffers.getRolledCount());
+                rsObject.add("trades", encodeTradesArray(randomSetShopOffers, input.shopID));
 
-                JsonArray tradeSeasonsRequired = new JsonArray();
-                for (String season : trade.getSeasonsRequired()) {
-                    tradeSeasonsRequired.add(season.replace("\"", ""));
-                }
-                tradeObj.add("request", requestJson);
-                tradeObj.add("second_request", secondRequestJson);
-                tradeObj.add("offer", offerJson);
-                if (!Objects.equals(trade.getUnlockDescription(), Component.empty())) {
-                    tradeObj.addProperty("unlock_description", ((TranslatableContents) trade.getUnlockDescription().getContents()).getKey());
-                }
-                tradeObj.addProperty("stage_required", trade.getStageRequired());
-                tradeObj.addProperty("stage_override", trade.getStageOverride());
-                tradeObj.add("seasons_required", tradeSeasonsRequired);
-                tradeObj.addProperty("numismatics_cost", trade.getNumismaticsCost());
-                trades.add(tradeObj);
             }
             return DataResult.success(JsonOps.INSTANCE.convertTo(ops, obj));
         }
@@ -170,6 +252,10 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
                 if (entity == EntityType.PIG && !"minecraft:pig".equals(entityStr))
                     throw new JsonParseException("Shop has entity type " + entityStr);
             }
+            String entityData = "";
+            if (obj.has("entity_data")) {
+                entityData = GsonHelper.getAsString(obj, "entity_data");
+            }
             TagKey<Block> blockTag = null;
             if (obj.has("block_tag")) {
                 blockTag = TagKey.create(Registries.BLOCK, new ResourceLocation(obj.get("block_tag").getAsString()));
@@ -177,6 +263,10 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
             boolean hiddenFromSelector = false;
             if (obj.has("hidden_from_selector")) {
                 hiddenFromSelector = GsonHelper.getAsBoolean(obj, "hidden_from_selector");
+            }
+            int selectorWeight = 1;
+            if (obj.has("selector_weight")) {
+                selectorWeight = (GsonHelper.getAsInt(obj, "selector_weight"));
             }
             ItemStack jeiCatalyst = Items.VILLAGER_SPAWN_EGG.getDefaultInstance();
             if (obj.has("jei_catalyst")) {
@@ -196,42 +286,41 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
                     seasonsRequired.add(String.valueOf(json).replace("\"", ""));
                 }
             }
-            ShopOffers trades = new ShopOffers();
-            if (obj.has("trades")) {
-                for (JsonElement json : GsonHelper.getAsJsonArray(obj, "trades")) {
-                    if (json.getAsJsonObject().has("offer") && json.getAsJsonObject().has("request")) {
-                        ItemStack request = ItemAdapter.ITEM_READER.fromJson(json.getAsJsonObject().getAsJsonObject("request"), ItemStack.class);
-                        ItemStack offer = ItemAdapter.ITEM_READER.fromJson(json.getAsJsonObject().getAsJsonObject("offer"), ItemStack.class);
-                        String tradeStage = "";
-                        String tradeStageOverride = "";
-                        int numismaticsCost = 0;
-                        List<String> tradeSeasonsRequired = new ArrayList<>();
-                        if (json.getAsJsonObject().has("seasons_required")) {
-                            for (JsonElement arrayJson : GsonHelper.getAsJsonArray(json.getAsJsonObject(), "seasons_required")) {
-                                tradeSeasonsRequired.add(String.valueOf(arrayJson).replace("\"", ""));
-                            }
-                        }
-                        MutableComponent tradeUnlockDescription = Component.empty();
-                        if (json.getAsJsonObject().has("unlock_description")) {
-                            tradeUnlockDescription = Component.translatable(GsonHelper.getAsString(json.getAsJsonObject(), "unlock_description"));
-                        }
-                        if (json.getAsJsonObject().has("stage_required"))
-                            tradeStage = GsonHelper.getAsString(json.getAsJsonObject(), "stage_required");
-                        if (json.getAsJsonObject().has("stage_override"))
-                            tradeStageOverride = GsonHelper.getAsString(json.getAsJsonObject(), "stage_override");
-                        if (json.getAsJsonObject().has("numismatics_cost"))
-                            numismaticsCost = GsonHelper.getAsInt(json.getAsJsonObject(), "numismatics_cost");
-                        if (json.getAsJsonObject().has("second_request")) {
-                            ItemStack secondRequest = ItemAdapter.ITEM_READER.fromJson(json.getAsJsonObject().getAsJsonObject("second_request"), ItemStack.class);
-                            trades.add(new ShopOffer(request, secondRequest, offer, tradeUnlockDescription, tradeStage, tradeStageOverride, tradeSeasonsRequired, numismaticsCost));
-                        } else {
-                            trades.add(new ShopOffer(request, offer, tradeUnlockDescription, tradeStage, tradeStageOverride, tradeSeasonsRequired, numismaticsCost));
+            ShopOffers trades = decodeTradesArray(obj);
+            List<RandomSetShopOffers> randomSets = new ArrayList<>();
+            if (obj.has("random_sets")) {
+                for (JsonElement json : GsonHelper.getAsJsonArray(obj, "random_sets")) {
+                    JsonObject objJson = json.getAsJsonObject();
+                    RandomSetShopOffers rsTrades = decodeTradesArray(objJson).toRandomShopOffers();
+                    if (objJson.has("stage_required")) {
+                        rsTrades.setStageRequired(GsonHelper.getAsString(objJson, "stage_required"));
+                    }
+                    if (objJson.has("stage_override")) {
+                        rsTrades.setStageOverride(GsonHelper.getAsString(objJson, "stage_override"));
+                    }
+                    List<String> rsSeasonsRequired = new ArrayList<>();
+                    if (objJson.has("seasons_required")) {
+                        for (JsonElement sjson : GsonHelper.getAsJsonArray(objJson, "seasons_required")) {
+                            rsSeasonsRequired.add(String.valueOf(sjson).replace("\"", ""));
                         }
                     }
-
+                    if (objJson.has("rolled_count")) {
+                        rsTrades.setRolledCount(GsonHelper.getAsInt(objJson, "rolled_count"));
+                    }
+                    if (objJson.has("random_style")) {
+                        RandomStyle foundStyle = switch (GsonHelper.getAsString(objJson, "random_style")) {
+                            case "per_day" -> RandomStyle.PER_DAY;
+                            case "per_player" -> RandomStyle.PER_PLAYER;
+                            case "per_entity" -> RandomStyle.PER_ENTITY;
+                            default -> RandomStyle.DEFAULT;
+                        };
+                        rsTrades.setRandomStyle(foundStyle);
+                    }
+                    rsTrades.setSeasonsRequired(rsSeasonsRequired);
+                    randomSets.add(rsTrades);
                 }
             }
-            return DataResult.success(Pair.of(new Shop(shopId, name, texture, villagerProfession, entity, blockTag, hiddenFromSelector, jeiCatalyst, stageRequired, stageOverride, seasonsRequired, trades), input));
+            return DataResult.success(Pair.of(new Shop(shopId, name, texture, villagerProfession, entity, entityData, blockTag, hiddenFromSelector, selectorWeight, jeiCatalyst, stageRequired, stageOverride, seasonsRequired, trades, randomSets), input));
         }
 
     }

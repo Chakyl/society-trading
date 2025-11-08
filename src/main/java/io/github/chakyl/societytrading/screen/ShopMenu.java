@@ -54,6 +54,7 @@ public class ShopMenu extends AbstractContainerMenu {
     private final Level level;
     private final int containerId;
     private final Player player;
+    private final UUID targetUUID;
     private Shop shop;
     private final ResultContainer result = new ResultContainer();
     private final Slot resultSlot;
@@ -65,21 +66,22 @@ public class ShopMenu extends AbstractContainerMenu {
     private long lastSoundTime;
 
     public ShopMenu(int pContainerId, Inventory pPlayerInventory) {
-        this(pContainerId, pPlayerInventory, null);
+        this(pContainerId, pPlayerInventory, null, null);
     }
 
-    public ShopMenu(int pContainerId, Inventory pPlayerInventory, String shopID) {
+    public ShopMenu(int pContainerId, Inventory pPlayerInventory, String shopID, UUID pTargetUUID) {
         super(ModElements.Menus.SHOP_MENU.get(), pContainerId);
         if (shopID != null) {
             DynamicHolder<Shop> shop = ShopRegistry.INSTANCE.holder(new ResourceLocation("society_trading:" + shopID));
             this.shop = shop.get();
-            this.trades = ShopData.getFilteredTrades(this.shop.trades(), pPlayerInventory.player);
+            this.trades = ShopData.getFilteredTrades(this.shop.trades(), this.shop.randomSets(), pPlayerInventory.player, pTargetUUID);
         } else {
             this.shop = null;
             this.trades = null;
         }
         this.player = pPlayerInventory.player;
         this.level = pPlayerInventory.player.level();
+        this.targetUUID = pTargetUUID;
         this.playerInventory = pPlayerInventory;
         this.playerBalance = fetchPlayerBalance();
         this.containerId = pContainerId;
@@ -100,6 +102,10 @@ public class ShopMenu extends AbstractContainerMenu {
     public void broadcastChanges() {
         this.updateResultSlot();
         super.broadcastChanges();
+    }
+
+    public ShopOffer getSelectedTrade() {
+        return selectedTrade;
     }
 
     @Override
@@ -266,7 +272,7 @@ public class ShopMenu extends AbstractContainerMenu {
     public ItemStack quickMoveStack(Player pPlayer, int pIndex) {
         ItemStack stack = ItemStack.EMPTY;
         Slot slot = this.slots.get(pIndex);
-        if (slot.getItem().getCount() > 0 && this.quickSlotIteration < slot.getItem().getMaxStackSize() / slot.getItem().getCount()) {
+        if (slot.getItem().getCount() > 0 && this.quickSlotIteration < slot.getItem().getMaxStackSize() + 1 / slot.getItem().getCount()) {
             this.quickSlotIteration++;
             if (slot.hasItem()) {
                 ItemStack slotStack = slot.getItem();
@@ -315,7 +321,7 @@ public class ShopMenu extends AbstractContainerMenu {
     }
 
     public void filterOffers(String searchQuery) {
-        ShopOffers availableTrades = ShopData.getFilteredTrades(this.shop.trades(), this.player);
+        ShopOffers availableTrades = ShopData.getFilteredTrades(this.shop.trades(), this.shop.randomSets(), this.player, this.targetUUID);
         if (searchQuery.isEmpty()) this.trades = availableTrades;
         else this.trades = ShopData.getSearchedTrades(availableTrades, searchQuery);
     }
@@ -388,7 +394,17 @@ public class ShopMenu extends AbstractContainerMenu {
         public void onTake(Player player, ItemStack stack) {
             stack.onCraftedBy(player.level(), player, stack.getCount());
             ShopMenu.this.onTrade(player);
+            this.set(stack);
             super.onTake(player, stack);
+        }
+
+        @Override
+        public void onQuickCraft(ItemStack pOldStack, ItemStack pNewStack) {
+            int i = pNewStack.getCount() - pOldStack.getCount();
+            if (i > 0) {
+                this.onQuickCraft(pNewStack, i);
+            }
+
         }
     }
 
