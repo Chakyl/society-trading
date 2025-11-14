@@ -6,8 +6,6 @@ import io.github.chakyl.societytrading.trading.ShopOffer;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.List;
-
 public class TradeRecipe {
     final MutableComponent shopName;
     final ItemStack costA;

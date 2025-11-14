@@ -169,8 +169,8 @@ dependencies {
     implementation fg.deobf("curse.maven:create-328085:6641603")
     implementation fg.deobf("curse.maven:curios-309927:6418456")
     // Controllable
-    implementation fg.deobf("curse.maven:controllable-317269:6171424")
-    implementation fg.deobf("curse.maven:framework-549225:6531428")
+    compileOnly fg.deobf("curse.maven:controllable-317269:6171424")
+    compileOnly fg.deobf("curse.maven:framework-549225:6531428")
     // For more info:
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html

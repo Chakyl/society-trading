@@ -1,10 +1,7 @@
 package io.github.chakyl.societytrading.data;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
+import com.google.gson.*;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
@@ -210,6 +207,7 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
                 seasonsRequired.add(season.replace("\"", ""));
             }
             obj.add("trades", encodeTradesArray(input.trades, input.shopID));
+            JsonArray randomizedTrades = new JsonArray();
             for (RandomSetShopOffers randomSetShopOffers : input.randomSets) {
                 JsonObject rsObject = new JsonObject();
                 rsObject.addProperty("stage_required", randomSetShopOffers.getStageRequired());
@@ -229,8 +227,9 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
                 rsObject.addProperty("random_style", randomStyle);
                 rsObject.addProperty("rolled_count", randomSetShopOffers.getRolledCount());
                 rsObject.add("trades", encodeTradesArray(randomSetShopOffers, input.shopID));
-
+                randomizedTrades.add(rsObject);
             }
+            obj.add("random_sets", randomizedTrades);
             return DataResult.success(JsonOps.INSTANCE.convertTo(ops, obj));
         }
 
@@ -262,7 +261,18 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
             }
             boolean hiddenFromSelector = false;
             if (obj.has("hidden_from_selector")) {
-                hiddenFromSelector = GsonHelper.getAsBoolean(obj, "hidden_from_selector");
+                JsonElement el = obj.get("hidden_from_selector");
+
+                if (el != null && !el.isJsonNull()) {
+                    if (el.isJsonPrimitive()) {
+                        JsonPrimitive p = el.getAsJsonPrimitive();
+                        if (p.isBoolean()) {
+                            hiddenFromSelector = p.getAsBoolean();
+                        } else if (p.isNumber()) {
+                            hiddenFromSelector = p.getAsInt() != 0;
+                        }
+                    }
+                }
             }
             int selectorWeight = 1;
             if (obj.has("selector_weight")) {

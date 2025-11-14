@@ -3,7 +3,10 @@ package io.github.chakyl.societytrading.util;
 import com.mrcrayfish.controllable.Controllable;
 import com.mrcrayfish.controllable.client.ControllerInput;
 import net.minecraft.client.Minecraft;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 public class ControllableUtils {
     public static double getCursorX() {
         Minecraft mc = Minecraft.getInstance();

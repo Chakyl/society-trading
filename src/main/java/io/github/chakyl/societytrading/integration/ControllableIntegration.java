@@ -7,7 +7,10 @@ import io.github.chakyl.societytrading.screen.ShopScreen;
 import io.github.chakyl.societytrading.util.ControllableUtils;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+@OnlyIn(Dist.CLIENT)
 public class ControllableIntegration {
     private static long lastScroll = 0;
 

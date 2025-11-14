@@ -19,10 +19,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-import java.util.Objects;
-
-import static io.github.chakyl.societytrading.util.ShopData.formatPrice;
-
 public class ShopCategory implements IRecipeCategory<ShopRecipe> {
 
     public static final RecipeType<ShopRecipe> TYPE = RecipeType.create(SocietyTrading.MODID, "shop", ShopRecipe.class);

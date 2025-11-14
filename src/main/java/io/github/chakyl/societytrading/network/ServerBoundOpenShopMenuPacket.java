@@ -7,7 +7,6 @@ import io.github.chakyl.societytrading.data.ShopRegistry;
 import io.github.chakyl.societytrading.screen.SelectorMenu;
 import io.github.chakyl.societytrading.screen.ShopMenu;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleMenuProvider;
