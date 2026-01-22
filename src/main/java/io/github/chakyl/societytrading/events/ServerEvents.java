@@ -1,6 +1,8 @@
 package io.github.chakyl.societytrading.events;
 
 import io.github.chakyl.societytrading.SocietyTrading;
+import io.github.chakyl.societytrading.command.OpenSelectorCommand;
+import io.github.chakyl.societytrading.command.OpenShopCommand;
 import io.github.chakyl.societytrading.data.Shop;
 import io.github.chakyl.societytrading.data.ShopRegistry;
 import io.github.chakyl.societytrading.registry.ModElements;
@@ -18,6 +20,7 @@ import net.minecraft.world.entity.npc.VillagerData;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.NameTagItem;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.EntityInteract;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.RightClickBlock;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -93,6 +96,12 @@ public class ServerEvents {
                     event.setCanceled(true);
                 }
             }
+        }
+
+        @SubscribeEvent
+        public static void onRegisterCommands(RegisterCommandsEvent event) {
+            OpenShopCommand.register(event.getDispatcher());
+            OpenSelectorCommand.register(event.getDispatcher());
         }
     }
 }

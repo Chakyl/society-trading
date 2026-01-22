@@ -69,7 +69,7 @@ public class TradesCategory implements IRecipeCategory<TradeRecipe> {
         }
 
         builder.addSlot(RecipeIngredientRole.CATALYST, 0, 0).addIngredient(VanillaTypes.ITEM_STACK, recipe.catalyst);
-        builder.addSlot(RecipeIngredientRole.OUTPUT, 101, 21).addIngredient(VanillaTypes.ITEM_STACK, recipe.result);
+        builder.addSlot(RecipeIngredientRole.OUTPUT, 113, 21).addIngredient(VanillaTypes.ITEM_STACK, recipe.result);
     }
 
     @Override

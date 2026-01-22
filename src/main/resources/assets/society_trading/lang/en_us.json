@@ -2,6 +2,7 @@
   "block.society_trading.shop_block": "Shop",
   "itemGroup.society_trading": "Society Trading",
 
+  "command.society_trading.wrong_id": "No registered shop with an id of %s found.",
   "gui.society_trading.price": "$%s",
   "gui.society_trading.hover_price_one": "Price: $%s",
   "gui.society_trading.hover_price_two": "From bank account",

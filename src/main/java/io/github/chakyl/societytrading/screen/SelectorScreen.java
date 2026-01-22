@@ -141,12 +141,12 @@ public class SelectorScreen extends AbstractContainerScreen<SelectorMenu> {
                     pGuiGraphics.pose().translate(0.0F, 0.0F, 100.0F);
                     int j1 = k + 14;
                     pGuiGraphics.drawString(this.font, shop.name(), l, j1 + 5, 16777215, true);
+                    boolean hasStageRequired = !shop.stageRequired().isEmpty() || !shop.stageOverride().isEmpty();
                     if (!shop.seasonsRequired().isEmpty()) {
-
-                        pGuiGraphics.blit(GUI_LOCATION, l+ SHOP_BUTTON_WIDTH - 24, j1  + 5, 0, INDICATOR_ICONS_START_X + (8 * ScreenUtils.getSeasonOrder(this.menu.getLevel())), 0.0F, INDICATOR_ICON_SIZE, INDICATOR_ICON_SIZE, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+                        pGuiGraphics.blit(GUI_LOCATION, l + SHOP_BUTTON_WIDTH - 24 - (hasStageRequired ? + INDICATOR_ICON_SIZE + 4: 0), j1 + 5, 0, INDICATOR_ICONS_START_X + (8 * ScreenUtils.getSeasonOrder(this.menu.getLevel())), 0.0F, INDICATOR_ICON_SIZE, INDICATOR_ICON_SIZE, TEXTURE_WIDTH, TEXTURE_HEIGHT);
                     }
-                    if (!shop.stageRequired().isEmpty() || !shop.stageOverride().isEmpty()) {
-                        pGuiGraphics.blit(GUI_LOCATION, l + SHOP_BUTTON_WIDTH - 24, j1  + 5, 0, INDICATOR_ICONS_START_X + (INDICATOR_ICON_SIZE * 4), 0.0F, INDICATOR_ICON_SIZE, INDICATOR_ICON_SIZE, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+                    if (hasStageRequired) {
+                        pGuiGraphics.blit(GUI_LOCATION, l + SHOP_BUTTON_WIDTH - 24, j1 + 5, 0, INDICATOR_ICONS_START_X + (INDICATOR_ICON_SIZE * 4), 0.0F, INDICATOR_ICON_SIZE, INDICATOR_ICON_SIZE, TEXTURE_WIDTH, TEXTURE_HEIGHT);
                     }
                     pGuiGraphics.pose().popPose();
                     k += 20;
