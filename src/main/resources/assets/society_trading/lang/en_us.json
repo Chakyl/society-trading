@@ -1,5 +1,5 @@
 {
-  "block.society_trading.shop_block": "Shop",
+  "block.society_trading.auto_trader": "Auto-Trader",
   "itemGroup.society_trading": "Society Trading",
 
   "command.society_trading.wrong_id": "No registered shop with an id of %s found.",

@@ -1,5 +1,6 @@
 package io.github.chakyl.societytrading;
 
+import dev.shadowsoffire.placebo.tabs.TabFillingRegistry;
 import io.github.chakyl.societytrading.data.ShopRegistry;
 import io.github.chakyl.societytrading.registry.ModElements;
 import net.minecraft.resources.ResourceLocation;
@@ -29,9 +30,9 @@ public class SocietyTrading {
 
     @SubscribeEvent
     public void setup(FMLCommonSetupEvent e) {
-//        e.enqueueWork(() -> {
-//            TabFillingRegistry.register(ModElements.Tabs.TAB_KEY, ModElements.Items.SHOP_BLOCK);
-//        });
+        e.enqueueWork(() -> {
+            TabFillingRegistry.register(ModElements.Tabs.TAB_KEY, ModElements.Items.AUTO_TRADER);
+        });
         ShopRegistry.INSTANCE.registerToBus();
     }
 

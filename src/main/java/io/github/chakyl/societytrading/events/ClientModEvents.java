@@ -2,8 +2,7 @@ package io.github.chakyl.societytrading.events;
 
 import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.registry.ModElements;
-import io.github.chakyl.societytrading.screen.SelectorScreen;
-import io.github.chakyl.societytrading.screen.ShopScreen;
+import io.github.chakyl.societytrading.screen.*;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -21,6 +20,8 @@ public class ClientModEvents {
         event.enqueueWork(() -> {
             MenuScreens.register(ModElements.Menus.SHOP_MENU.get(), ShopScreen::new);
             MenuScreens.register(ModElements.Menus.SELECTOR_MENU.get(), SelectorScreen::new);
+            MenuScreens.register(ModElements.Menus.AUTO_TRADER_MENU.get(), AutoTraderScreen::new);
+            MenuScreens.register(ModElements.Menus.AUTO_TRADER_SELECTOR_MENU.get(), AutoTraderSelectorScreen::new);
             if (SocietyTrading.CONTROLLABLE_INSTALLED) {
                 ClientControllableEvents.registerClientTick();
             }

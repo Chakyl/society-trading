@@ -62,7 +62,7 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
     public static final Codec<Shop> CODEC = new ShopCodec();
     public static final List<String> POSSIBLE_SEASONS = Arrays.asList("early_spring", "mid_spring", "late_spring", "early_summer", "mid_summer", "late_summer", "early_autumn", "mid_autumn", "late_autumn", "early_winter", "mid_winter", "late_winter");
     public static final List<String> POSSIBLE_RANDOM_STYLES = Arrays.asList("per_day", "per_player", "per_entity", "default");
-
+    public static List<String> registeredIds = new ArrayList<>();
     public Shop(Shop other) {
         this(other.shopID, other.name, other.texture, other.villagerProfession, other.entity, other.entityData, other.blockTag, other.hiddenFromSelector, other.selectorWeight, other.jeiCatalyst, other.stageRequired, other.stageOverride, other.seasonsRequired, other.trades, other.randomSets);
     }
@@ -76,6 +76,13 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
         Preconditions.checkNotNull(this.shopID, "Invalid shop ID!");
         Preconditions.checkNotNull(this.name, "Invalid shop name!");
         Preconditions.checkNotNull(this.texture, "Missing texture!");
+        for (ShopOffer trade : this.trades) {
+            if (registeredIds.contains(trade.getTradeId())) {
+                throw new NullPointerException("Trade given a duplicate ID " + trade.getTradeId());
+            } else {
+                registeredIds.add(trade.getTradeId());
+            }
+        }
         if (this.seasonsRequired != null) {
             this.seasonsRequired.forEach((season) -> {
                 // Why is Java like that????
@@ -139,13 +146,15 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
             tradeObj.addProperty("stage_override", trade.getStageOverride());
             tradeObj.add("seasons_required", tradeSeasonsRequired);
             tradeObj.addProperty("numismatics_cost", trade.getNumismaticsCost());
+            tradeObj.addProperty("trade_id", trade.getTradeId());
+            tradeObj.addProperty("limit", trade.getLimit());
             trades.add(tradeObj);
         }
         return trades;
 
     }
 
-    private static ShopOffers decodeTradesArray(JsonObject obj) {
+    private static ShopOffers decodeTradesArray(JsonObject obj, String shopID) {
         ShopOffers trades = new ShopOffers();
         if (obj.has("trades")) {
             for (JsonElement json : GsonHelper.getAsJsonArray(obj, "trades")) {
@@ -155,6 +164,8 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
                     String tradeStage = "";
                     String tradeStageOverride = "";
                     int numismaticsCost = 0;
+                    int limit = -1;
+                    String tradeId = shopID + ":" + offer.getItem();
                     List<String> tradeSeasonsRequired = new ArrayList<>();
                     if (json.getAsJsonObject().has("seasons_required")) {
                         for (JsonElement arrayJson : GsonHelper.getAsJsonArray(json.getAsJsonObject(), "seasons_required")) {
@@ -171,11 +182,17 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
                         tradeStageOverride = GsonHelper.getAsString(json.getAsJsonObject(), "stage_override");
                     if (json.getAsJsonObject().has("numismatics_cost"))
                         numismaticsCost = GsonHelper.getAsInt(json.getAsJsonObject(), "numismatics_cost");
+                    if (json.getAsJsonObject().has("trade_id")) {
+                        tradeId = GsonHelper.getAsString(json.getAsJsonObject(), "trade_id");
+                    }
+                    if (json.getAsJsonObject().has("limit")) {
+                        limit = GsonHelper.getAsInt(json.getAsJsonObject(), "limit");
+                    }
                     if (json.getAsJsonObject().has("second_request")) {
                         ItemStack secondRequest = ItemAdapter.ITEM_READER.fromJson(json.getAsJsonObject().getAsJsonObject("second_request"), ItemStack.class);
-                        trades.add(new ShopOffer(request, secondRequest, offer, tradeUnlockDescription, tradeStage, tradeStageOverride, tradeSeasonsRequired, numismaticsCost));
+                        trades.add(new ShopOffer(request, secondRequest, offer, tradeUnlockDescription, tradeStage, tradeStageOverride, tradeSeasonsRequired, numismaticsCost, limit, tradeId));
                     } else {
-                        trades.add(new ShopOffer(request, offer, tradeUnlockDescription, tradeStage, tradeStageOverride, tradeSeasonsRequired, numismaticsCost));
+                        trades.add(new ShopOffer(request, offer, tradeUnlockDescription, tradeStage, tradeStageOverride, tradeSeasonsRequired, numismaticsCost, limit, tradeId));
                     }
                 }
 
@@ -296,12 +313,12 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
                     seasonsRequired.add(String.valueOf(json).replace("\"", ""));
                 }
             }
-            ShopOffers trades = decodeTradesArray(obj);
+            ShopOffers trades = decodeTradesArray(obj, shopId);
             List<RandomSetShopOffers> randomSets = new ArrayList<>();
             if (obj.has("random_sets")) {
                 for (JsonElement json : GsonHelper.getAsJsonArray(obj, "random_sets")) {
                     JsonObject objJson = json.getAsJsonObject();
-                    RandomSetShopOffers rsTrades = decodeTradesArray(objJson).toRandomShopOffers();
+                    RandomSetShopOffers rsTrades = decodeTradesArray(objJson, shopId).toRandomShopOffers();
                     if (objJson.has("stage_required")) {
                         rsTrades.setStageRequired(GsonHelper.getAsString(objJson, "stage_required"));
                     }

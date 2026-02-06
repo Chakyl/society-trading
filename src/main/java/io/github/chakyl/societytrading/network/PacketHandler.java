@@ -47,6 +47,18 @@ public class PacketHandler {
                 .consumerMainThread(ClientBoundBalancePacket::handle)
                 .add();
 
+        INSTANCE.messageBuilder(ServerBoundAutoTradeButtonClickPacket.class, 5, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ServerBoundAutoTradeButtonClickPacket::encode)
+                .decoder(ServerBoundAutoTradeButtonClickPacket::new)
+                .consumerMainThread(ServerBoundAutoTradeButtonClickPacket::handle)
+                .add();
+
+//        INSTANCE.messageBuilder(ClientBoundAutoTradeSelectedPacket.class, 6, NetworkDirection.PLAY_TO_CLIENT)
+//                .encoder(ClientBoundAutoTradeSelectedPacket::encode)
+//                .decoder(ClientBoundAutoTradeSelectedPacket::new)
+//                .consumerMainThread(ClientBoundAutoTradeSelectedPacket::handle)
+//                .add();
+
     }
 
     public static <MSG> void sendToServer(MSG message) {

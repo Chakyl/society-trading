@@ -10,8 +10,10 @@ import io.github.chakyl.societytrading.data.ShopRegistry;
 import io.github.chakyl.societytrading.network.ClientBoundBalancePacket;
 import io.github.chakyl.societytrading.network.PacketHandler;
 import io.github.chakyl.societytrading.registry.ModElements;
+import io.github.chakyl.societytrading.tradelimits.TradeLimitProvider;
 import io.github.chakyl.societytrading.trading.ShopOffer;
 import io.github.chakyl.societytrading.trading.ShopOffers;
+import io.github.chakyl.societytrading.util.GeneralUtils;
 import io.github.chakyl.societytrading.util.ItemHash;
 import io.github.chakyl.societytrading.util.ShopData;
 import it.unimi.dsi.fastutil.Pair;
@@ -40,17 +42,6 @@ import java.util.stream.IntStream;
 import static io.github.chakyl.numismaticsutils.utils.CurioUtils.getCardCurio;
 
 public class ShopMenu extends AbstractContainerMenu {
-    protected static final int PAYMENT1_SLOT = 0;
-    protected static final int PAYMENT2_SLOT = 1;
-    protected static final int RESULT_SLOT = 2;
-    private static final int INV_SLOT_START = 3;
-    private static final int INV_SLOT_END = 30;
-    private static final int USE_ROW_SLOT_START = 30;
-    private static final int USE_ROW_SLOT_END = 39;
-    private static final int SELLSLOT1_X = 136;
-    private static final int SELLSLOT2_X = 162;
-    private static final int BUYSLOT_X = 220;
-    private static final int ROW_Y = 37;
     private final Level level;
     private final int containerId;
     private final Player player;
@@ -140,7 +131,14 @@ public class ShopMenu extends AbstractContainerMenu {
         return this.playerBalance <= 0 || !trade.hasNumismaticsCost() || this.playerBalance >= trade.getNumismaticsCost();
     }
 
+    public boolean canTradeForSelected() {
+        return !this.resultSlot.getItem().isEmpty();
+    }
+
     private boolean canTradeFor(ShopOffer selectedTrade) {
+        if (GeneralUtils.atTradeLimit(this.player, selectedTrade)) {
+            return false;
+        }
         return this.getConsumedMaterialItems(selectedTrade) != null && this.canAffordOrNotRelevant(selectedTrade);
     }
 
@@ -152,6 +150,16 @@ public class ShopMenu extends AbstractContainerMenu {
         if (this.playerBalance > 0 && offer.hasNumismaticsCost()) {
             this.getPlayerAccount().deduct(offer.getNumismaticsCost());
             this.updateBalance();
+        }
+        if (offer.getLimit() > 0) {
+            this.player.getCapability(TradeLimitProvider.PLAYER_DATA).ifPresent(data -> {
+                int existingLimit = data.getData(offer.getTradeId());
+                if (existingLimit == 0) {
+                    data.setData(offer.getTradeId(), 1);
+                } else {
+                    data.setData(offer.getTradeId(), 1 + existingLimit);
+                }
+            });
         }
 
     }

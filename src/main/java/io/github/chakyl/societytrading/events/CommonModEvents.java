@@ -20,5 +20,4 @@ public class CommonModEvents {
         event.enqueueWork(() -> SocietyTrading.NUMISMATICS_INSTALLED = ModList.get().isLoaded("numismatics"));
         event.enqueueWork(() -> SocietyTrading.NUMISMATICS_UTILS_INSTALLED = ModList.get().isLoaded("numismatics_utils"));
     }
-
 }

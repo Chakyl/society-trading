@@ -2,6 +2,7 @@ package io.github.chakyl.societytrading.trading;
 
 import dev.latvian.mods.kubejs.stages.Stages;
 import io.github.chakyl.societytrading.SocietyTrading;
+import io.github.chakyl.societytrading.util.GeneralUtils;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.player.Player;
@@ -11,6 +12,7 @@ import sereneseasons.api.season.SeasonHelper;
 import java.util.List;
 
 public class ShopOffer {
+    private final String tradeId;
     private final ItemStack costA;
     private final ItemStack costB;
     private final ItemStack result;
@@ -18,13 +20,14 @@ public class ShopOffer {
     private final String stageOverride;
     private final List<String> seasonsRequired;
     private final int numismaticsCost;
+    private final int limit;
     MutableComponent unlockDescription;
 
-    public ShopOffer(ItemStack pCostA, ItemStack pResult, MutableComponent pUnlockDescription, String pStageRequired, String pStageOverride, List<String> pSeasonsRequired, int pNumismaticsCost) {
-        this(pCostA, ItemStack.EMPTY, pResult, pUnlockDescription, pStageRequired, pStageOverride, pSeasonsRequired, pNumismaticsCost);
+    public ShopOffer(ItemStack pCostA, ItemStack pResult, MutableComponent pUnlockDescription, String pStageRequired, String pStageOverride, List<String> pSeasonsRequired, int pNumismaticsCost, int limit, String tradeId) {
+        this(pCostA, ItemStack.EMPTY, pResult, pUnlockDescription, pStageRequired, pStageOverride, pSeasonsRequired, pNumismaticsCost, limit, tradeId);
     }
 
-    public ShopOffer(ItemStack pCostA, ItemStack pCostB, ItemStack pResult, MutableComponent pUnlockDescription, String pStageRequired, String pStageOverride, List<String> pSeasonsRequired, int pNumismaticsCost) {
+    public ShopOffer(ItemStack pCostA, ItemStack pCostB, ItemStack pResult, MutableComponent pUnlockDescription, String pStageRequired, String pStageOverride, List<String> pSeasonsRequired, int pNumismaticsCost, int limit, String tradeId) {
         this.costA = pCostA;
         this.costB = pCostB;
         this.result = pResult;
@@ -33,8 +36,17 @@ public class ShopOffer {
         this.seasonsRequired = pSeasonsRequired;
         this.numismaticsCost = pNumismaticsCost;
         this.unlockDescription = pUnlockDescription;
+        this.tradeId = tradeId;
+        this.limit = limit;
     }
 
+    public String getTradeId() {
+        return tradeId;
+    }
+
+    public int getLimit() {
+        return limit;
+    }
 
     public ItemStack getCostA() {
         return costA;
@@ -72,7 +84,7 @@ public class ShopOffer {
     }
 
     public boolean playerCanSee(Player player) {
-        if (SocietyTrading.KUBEJS_INSTALLED) {
+        if (player != null && SocietyTrading.KUBEJS_INSTALLED) {
             if (!this.stageOverride.isEmpty() && Stages.get(player).has(this.stageOverride)) {
                 return true;
             }
@@ -80,7 +92,7 @@ public class ShopOffer {
                 return false;
             }
         }
-        if (SocietyTrading.SERENE_SEASONS_INSTALLED) {
+        if (player != null && SocietyTrading.SERENE_SEASONS_INSTALLED) {
             if (!this.seasonsRequired.isEmpty() && !this.seasonsRequired.contains(SeasonHelper.getSeasonState(player.level()).getSubSeason().getSerializedName())) {
                 return false;
             }

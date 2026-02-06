@@ -3,6 +3,7 @@ package io.github.chakyl.societytrading.util;
 import dev.latvian.mods.kubejs.stages.Stages;
 import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.data.Shop;
+import io.github.chakyl.societytrading.data.ShopRegistry;
 import io.github.chakyl.societytrading.trading.RandomSetShopOffers;
 import io.github.chakyl.societytrading.trading.ShopOffer;
 import io.github.chakyl.societytrading.trading.ShopOffers;
@@ -46,6 +47,17 @@ public class ShopData {
         return newShops;
     }
 
+    public static List<Shop> getAutoTraderShops(Collection<Shop> shops) {
+        List<Shop> newShops = new ArrayList<>();
+        for (Shop shop : shops) {
+                newShops.add(shop);
+        }
+        ShopComparator comparator = new ShopComparator();
+        comparator.setSortingBy(ShopComparator.Order.ID);
+        newShops.sort(Comparator.comparingInt(Shop::selectorWeight));
+        return newShops;
+    }
+
     public static Shop getShopFromEntity(Collection<Shop> shops, LivingEntity entity) {
         for (Shop shop : shops) {
             if (shop.entity() == entity.getType()) {
@@ -55,6 +67,20 @@ public class ShopData {
                     return shop;
                 }
             }
+        }
+        return null;
+    }
+
+    public static Shop getShopById(String shopId) {
+        for (Shop shop : ShopRegistry.INSTANCE.getValues()) {
+            if (shop.shopID().equals(shopId)) return shop;
+        }
+        return null;
+    }
+
+    public static ShopOffer getTradeById(Shop shop, String tradeId) {
+        for (ShopOffer trade : shop.trades()) {
+            if (trade.getTradeId().equals(tradeId)) return trade;
         }
         return null;
     }
@@ -107,10 +133,18 @@ public class ShopData {
         }
         return randomizedOffers;
     }
-
+    public static ShopOffers getAutoTraderTrades(ShopOffers trades) {
+        ShopOffers newTrades = new ShopOffers();
+        for (ShopOffer trade : trades) {
+            if (!(!trade.getSeasonsRequired().isEmpty()|| !trade.getStageRequired().isEmpty() || trade.getLimit() > 0)) {
+                newTrades.add(trade);
+            }
+        }
+        return newTrades;
+    }
     public static ShopOffers getFilteredTrades(ShopOffers trades, List<RandomSetShopOffers> randomSetShopOffers, Player player, UUID targetUUID) {
         ShopOffers newTrades = new ShopOffers();
-        newTrades.addAll(getRandomSetOffers(randomSetShopOffers, player, targetUUID));
+        if (player != null) newTrades.addAll(getRandomSetOffers(randomSetShopOffers, player, targetUUID));
         for (ShopOffer trade : trades) {
             if (trade.playerCanSee(player)) {
                 newTrades.add(trade);
