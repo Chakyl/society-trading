@@ -1,5 +1,6 @@
 package io.github.chakyl.societytrading.screen;
 
+import dev.ithundxr.createnumismatics.registry.NumismaticsTags;
 import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.blockentity.AutoTraderBlockEntity;
@@ -12,6 +13,7 @@ import io.github.chakyl.societytrading.util.ShopData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -58,8 +60,10 @@ public class AutoTraderMenu extends AbstractContainerMenu {
         this.blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.DOWN).ifPresent(iItemHandler -> {
             this.addSlot(new SlotItemHandler(iItemHandler, 0, 220, 64));
         });
+        this.blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, null).ifPresent(iItemHandler -> {
+            this.addSlot(new SlotItemHandler(iItemHandler, 0, 261, 18));
+        });
         String shopID = ShopData.getAutoTraderShops(ShopRegistry.INSTANCE.getValues()).get(this.data.get(2)).shopID();
-        SocietyTrading.LOGGER.info(shopID + " " + this.data.get(2));
         if (shopID != null) {
             DynamicHolder<Shop> shop = ShopRegistry.INSTANCE.holder(new ResourceLocation("society_trading:" + shopID));
             this.shop = shop.get();
@@ -93,8 +97,14 @@ public class AutoTraderMenu extends AbstractContainerMenu {
         return this.shop.texture();
     }
 
+    public Component getName() {
+        if (this.shop == null) return null;
+        return this.shop.name();
+    }
+
     public void setSelectedTradeIndex(int index) {
         this.data.set(3, index);
+        this.blockEntity.refreshSelectedTrade();
     }
 
     public int getSelectedShopIndex() {
@@ -116,6 +126,7 @@ public class AutoTraderMenu extends AbstractContainerMenu {
 
     public void resetSelectedShop() {
         this.data.set(2, -1);
+        this.blockEntity.refreshSelectedShop();
     }
 
     public int getSelectedTradeIndex() {
@@ -124,7 +135,7 @@ public class AutoTraderMenu extends AbstractContainerMenu {
 
     public ShopOffer getSelectedTrade() {
         if (this.shop == null || this.getSelectedTradeIndex() == -1) return null;
-        return this.shop.trades().get(this.getSelectedTradeIndex());
+        return ShopData.getAutoTraderTrades(this.shop.trades()).get(this.getSelectedTradeIndex());
     }
 
     public ShopOffers getOffers() {
@@ -157,7 +168,7 @@ public class AutoTraderMenu extends AbstractContainerMenu {
     private static final int TE_INVENTORY_FIRST_SLOT_INDEX = VANILLA_FIRST_SLOT_INDEX + VANILLA_SLOT_COUNT;
 
     // THIS YOU HAVE TO DEFINE!
-    private static final int TE_INVENTORY_SLOT_COUNT = 3;  // must be the number of slots you have!
+    private static final int TE_INVENTORY_SLOT_COUNT = 4;  // must be the number of slots you have!
 
     @Override
     public ItemStack quickMoveStack(Player playerIn, int pIndex) {
@@ -221,9 +232,11 @@ public class AutoTraderMenu extends AbstractContainerMenu {
         return this.slots.get(35 + 2).getItem().isEmpty();
     }
 
-
-
     public boolean resultSlotEmpty() {
         return this.slots.get(35 + 3).getItem().isEmpty();
+    }
+
+    public boolean cardSlotHasCard() {
+        return SocietyTrading.NUMISMATICS_INSTALLED && this.slots.get(35 + 4).getItem().is(NumismaticsTags.AllItemTags.CARDS.tag);
     }
 }

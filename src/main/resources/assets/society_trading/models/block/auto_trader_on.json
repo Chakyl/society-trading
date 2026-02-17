@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "society_trading:block/auto_trader_front_working",
+    "side": "society_trading:block/auto_trader_side",
+    "top": "society_trading:block/auto_trader_top"
+  }
+}

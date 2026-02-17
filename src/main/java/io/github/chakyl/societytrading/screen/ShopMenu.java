@@ -127,9 +127,6 @@ public class ShopMenu extends AbstractContainerMenu {
         }
     }
 
-    private boolean canAffordOrNotRelevant(ShopOffer trade) {
-        return this.playerBalance <= 0 || !trade.hasNumismaticsCost() || this.playerBalance >= trade.getNumismaticsCost();
-    }
 
     public boolean canTradeForSelected() {
         return !this.resultSlot.getItem().isEmpty();
@@ -139,7 +136,7 @@ public class ShopMenu extends AbstractContainerMenu {
         if (GeneralUtils.atTradeLimit(this.player, selectedTrade)) {
             return false;
         }
-        return this.getConsumedMaterialItems(selectedTrade) != null && this.canAffordOrNotRelevant(selectedTrade);
+        return this.getConsumedMaterialItems(selectedTrade) != null && GeneralUtils.canAffordOrNotRelevant(selectedTrade, this.playerBalance);
     }
 
     public void trade(ShopOffer offer, Inventory pPlayerInventory) {
@@ -241,6 +238,7 @@ public class ShopMenu extends AbstractContainerMenu {
                 materials.merge(item, remaining, Integer::sum);
                 remaining = 0;
             } else {
+
                 materials.merge(item, count, Integer::sum);
                 remaining -= count;
             }
@@ -280,7 +278,7 @@ public class ShopMenu extends AbstractContainerMenu {
     public ItemStack quickMoveStack(Player pPlayer, int pIndex) {
         ItemStack stack = ItemStack.EMPTY;
         Slot slot = this.slots.get(pIndex);
-        if (slot.getItem().getCount() > 0 && this.quickSlotIteration < slot.getItem().getMaxStackSize() + 1 / slot.getItem().getCount()) {
+        if (slot.getItem().getCount() > 0 && this.quickSlotIteration < slot.getItem().getMaxStackSize() / slot.getItem().getCount()) {
             this.quickSlotIteration++;
             if (slot.hasItem()) {
                 ItemStack slotStack = slot.getItem();

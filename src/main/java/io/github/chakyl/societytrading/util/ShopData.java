@@ -50,7 +50,7 @@ public class ShopData {
     public static List<Shop> getAutoTraderShops(Collection<Shop> shops) {
         List<Shop> newShops = new ArrayList<>();
         for (Shop shop : shops) {
-                newShops.add(shop);
+            if (!shop.hiddenFromSelector() && !shop.hiddenFromAutoTrader()) newShops.add(shop);
         }
         ShopComparator comparator = new ShopComparator();
         comparator.setSortingBy(ShopComparator.Order.ID);
@@ -133,15 +133,17 @@ public class ShopData {
         }
         return randomizedOffers;
     }
+
     public static ShopOffers getAutoTraderTrades(ShopOffers trades) {
         ShopOffers newTrades = new ShopOffers();
         for (ShopOffer trade : trades) {
-            if (!(!trade.getSeasonsRequired().isEmpty()|| !trade.getStageRequired().isEmpty() || trade.getLimit() > 0)) {
+            if (!(!trade.getSeasonsRequired().isEmpty() || !trade.getStageRequired().isEmpty() || !trade.getStageRemoved().isEmpty() || trade.getLimit() > 0)) {
                 newTrades.add(trade);
             }
         }
         return newTrades;
     }
+
     public static ShopOffers getFilteredTrades(ShopOffers trades, List<RandomSetShopOffers> randomSetShopOffers, Player player, UUID targetUUID) {
         ShopOffers newTrades = new ShopOffers();
         if (player != null) newTrades.addAll(getRandomSetOffers(randomSetShopOffers, player, targetUUID));

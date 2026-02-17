@@ -48,7 +48,6 @@ public class AutoTraderScreen extends AbstractContainerScreen<AutoTraderMenu> {
     private static final int SCROLL_BAR_HEIGHT = TRADE_BUTTON_HEIGHT * NUMBER_OF_OFFER_BUTTONS;
     private static final int SCROLL_BAR_TOP_POS_Y = 18;
     private static final int SCROLL_BAR_START_X = 195;
-    private static final Component TRADES_LABEL = Component.translatable("gui.society_trading.search_trades");
     private int shopItem;
     private final TradeOfferButton[] tradeOfferButtons = new TradeOfferButton[NUMBER_OF_OFFER_BUTTONS];
     int scrollOff;
@@ -91,9 +90,9 @@ public class AutoTraderScreen extends AbstractContainerScreen<AutoTraderMenu> {
 
 
     protected void renderLabels(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
-        int centralX = (5 - this.font.width(TRADES_LABEL) / 2) + 122;
-        pGuiGraphics.drawString(this.font, this.title, 6, LABEL_Y, 4210752, false);
-        pGuiGraphics.drawString(this.font, TRADES_LABEL, centralX, LABEL_Y, 4210752, false);
+        int centralX = 88;
+        pGuiGraphics.drawString(this.font, this.title, centralX, LABEL_Y, 4210752, false);
+        pGuiGraphics.drawString(this.font, this.menu.getName(), 7, LABEL_Y, 4210752, false);
         pGuiGraphics.drawString(this.font, this.playerInventoryTitle, centralX, 87, 4210752, false);
     }
 
@@ -108,7 +107,7 @@ public class AutoTraderScreen extends AbstractContainerScreen<AutoTraderMenu> {
 
     private void renderProgressArrow(GuiGraphics guiGraphics, int x, int y) {
         if (menu.isCrafting()) {
-            guiGraphics.blit(GUI_LOCATION, x + 224, y + 41,  304 , 0, 8, menu.getScaledProgress(), TEXTURE_WIDTH, TEXTURE_HEIGHT);
+            guiGraphics.blit(GUI_LOCATION, x + 224, y + 41, 304, 0, 8, menu.getScaledProgress(), TEXTURE_WIDTH, TEXTURE_HEIGHT);
         }
     }
 
@@ -174,7 +173,7 @@ public class AutoTraderScreen extends AbstractContainerScreen<AutoTraderMenu> {
                     pGuiGraphics.pose().pushPose();
                     pGuiGraphics.pose().translate(0.0F, 0.0F, 100.0F);
                     int j1 = k + 16;
-                    boolean noBalance = true;
+                    boolean noBalance = !this.menu.cardSlotHasCard();
                     int numismaticOffset = 0;
                     int priceOffset = 5;
                     if (shopOffer.hasNumismaticsCost() && !noBalance) numismaticOffset = l + TRADE_BUTTON_WIDTH - 21;
@@ -327,7 +326,7 @@ public class AutoTraderScreen extends AbstractContainerScreen<AutoTraderMenu> {
 
         public void renderToolTip(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
             if (this.isHovered && AutoTraderScreen.this.menu.getOffers().size() > this.index + AutoTraderScreen.this.scrollOff) {
-                boolean noBalance = true;
+                boolean noBalance = !AutoTraderScreen.this.menu.cardSlotHasCard();
                 ShopOffer offer = AutoTraderScreen.this.menu.getOffers().get(this.index + AutoTraderScreen.this.scrollOff);
                 ItemStack itemstack1 = offer.getCostA();
                 ItemStack itemstack2 = offer.getCostB();
@@ -348,22 +347,21 @@ public class AutoTraderScreen extends AbstractContainerScreen<AutoTraderMenu> {
                         rightMostStack = ItemStack.EMPTY;
                     }
                 }
-
                 if (pMouseX < this.getX() + 20) {
                     ItemStack itemstack = offer.getResult();
                     pGuiGraphics.renderTooltip(AutoTraderScreen.this.font, itemstack, pMouseX, pMouseY);
-                } else if (pMouseX < this.getX() + 165 && pMouseX > this.getX() + 148) {
+                } else if (pMouseX > this.getX() + 69 && pMouseX < this.getX() + 85) {
                     if (!itemstack2.isEmpty()) {
                         pGuiGraphics.renderTooltip(AutoTraderScreen.this.font, itemstack2, pMouseX, pMouseY);
                     }
-                } else if (pMouseX > this.getX() + 164) {
+                } else if (pMouseX > this.getX() + 85) {
                     if (!rightMostStack.isEmpty()) {
                         pGuiGraphics.renderTooltip(AutoTraderScreen.this.font, rightMostStack, pMouseX, pMouseY);
                     } else if (renderPrice) {
                         this.priceTooltip(pGuiGraphics, offer.getNumismaticsCost(), pMouseX, pMouseY);
                     }
                 }
-                if (renderPrice && pMouseX > this.getX() + 116 && pMouseX < this.getX() + 165) {
+                if (renderPrice && pMouseX > this.getX() + 25 && pMouseX < this.getX() + 85) {
                     this.priceTooltip(pGuiGraphics, offer.getNumismaticsCost(), pMouseX, pMouseY);
                 }
             }

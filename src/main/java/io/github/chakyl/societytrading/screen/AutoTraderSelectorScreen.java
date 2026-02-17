@@ -3,9 +3,8 @@ package io.github.chakyl.societytrading.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.data.Shop;
-import io.github.chakyl.societytrading.network.PacketHandler;
-import io.github.chakyl.societytrading.network.ServerBoundOpenShopMenuPacket;
 import io.github.chakyl.societytrading.util.ScreenUtils;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -19,6 +18,8 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 @OnlyIn(Dist.CLIENT)
 public class AutoTraderSelectorScreen extends AbstractContainerScreen<AutoTraderSelectorMenu> {
@@ -28,7 +29,7 @@ public class AutoTraderSelectorScreen extends AbstractContainerScreen<AutoTrader
     private static final int LABEL_Y = 6;
     private static final int NUMBER_OF_SHOP_BUTTONS = 8;
     private static final int SHOP_BUTTON_HEIGHT = 20;
-    private static final int SHOP_BUTTON_WIDTH = 153;
+    private static final int SHOP_BUTTON_WIDTH = 153 - SHOP_BUTTON_HEIGHT;
     private static final int SCROLLER_HEIGHT = 27;
     private static final int SCROLLER_WIDTH = 6;
     private static final int SCROLL_BAR_HEIGHT = SHOP_BUTTON_HEIGHT * NUMBER_OF_SHOP_BUTTONS;
@@ -55,7 +56,7 @@ public class AutoTraderSelectorScreen extends AbstractContainerScreen<AutoTrader
         int k = j + 18;
 
         for (int l = 0; l < NUMBER_OF_SHOP_BUTTONS; ++l) {
-            this.shopSelectorButtons[l] = this.addRenderableWidget(new AutoTraderSelectorScreen.ShopSelectorButton(i + 8, k, l, (button) -> {
+            this.shopSelectorButtons[l] = this.addRenderableWidget(new AutoTraderSelectorScreen.ShopSelectorButton(i + 8 + SHOP_BUTTON_HEIGHT, k, l, (button) -> {
                 if (button instanceof AutoTraderSelectorScreen.ShopSelectorButton) {
                     this.shopItem = ((AutoTraderSelectorScreen.ShopSelectorButton) button).getIndex() + this.scrollOff;
                     Minecraft.getInstance().gameMode.handleInventoryButtonClick(this.menu.containerId, this.shopItem);
@@ -127,13 +128,21 @@ public class AutoTraderSelectorScreen extends AbstractContainerScreen<AutoTrader
                     pGuiGraphics.pose().pushPose();
                     pGuiGraphics.pose().translate(0.0F, 0.0F, 100.0F);
                     int j1 = k + 14;
-                    pGuiGraphics.drawString(this.font, shop.name(), l, j1 + 5, 16777215, true);
+                    pGuiGraphics.drawString(this.font, shop.name(), l + SHOP_BUTTON_HEIGHT, j1 + 5, 16777215, true);
+                    int catalystX = l - 8;
+                    int catalystY = j1 - 1;
+                    pGuiGraphics.blit(GUI_LOCATION, catalystX, catalystY, 0, 256, 0.0F, 20, 20, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+                    pGuiGraphics.renderFakeItem(shop.jeiCatalyst(), l - 6, j1 + 1);
+                    if (pMouseX >= catalystX && pMouseX <= catalystX + SHOP_BUTTON_HEIGHT && pMouseY >= catalystY && pMouseY < catalystY + SHOP_BUTTON_HEIGHT) {
+                        List<Component> tooltip = List.of(shop.name(), Component.translatable("shop.society_trading." + shop.shopID() + ".description").withStyle(ChatFormatting.GRAY));
+                        pGuiGraphics.renderTooltip(this.font, tooltip, Optional.empty(), pMouseX, pMouseY);
+                    }
                     boolean hasStageRequired = !shop.stageRequired().isEmpty() || !shop.stageOverride().isEmpty();
                     if (!shop.seasonsRequired().isEmpty()) {
-                        pGuiGraphics.blit(GUI_LOCATION, l + SHOP_BUTTON_WIDTH - 24 - (hasStageRequired ? + INDICATOR_ICON_SIZE + 4: 0), j1 + 5, 0, INDICATOR_ICONS_START_X + (8 * ScreenUtils.getSeasonOrder(this.menu.getLevel())), 0.0F, INDICATOR_ICON_SIZE, INDICATOR_ICON_SIZE, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+                        pGuiGraphics.blit(GUI_LOCATION, l + SHOP_BUTTON_WIDTH - 4 - (hasStageRequired ? +INDICATOR_ICON_SIZE + 4 : 0), j1 + 5, 0, INDICATOR_ICONS_START_X + (8 * ScreenUtils.getSeasonOrder(this.menu.getLevel())), 0.0F, INDICATOR_ICON_SIZE, INDICATOR_ICON_SIZE, TEXTURE_WIDTH, TEXTURE_HEIGHT);
                     }
                     if (hasStageRequired) {
-                        pGuiGraphics.blit(GUI_LOCATION, l + SHOP_BUTTON_WIDTH - 24, j1 + 5, 0, INDICATOR_ICONS_START_X + (INDICATOR_ICON_SIZE * 4), 0.0F, INDICATOR_ICON_SIZE, INDICATOR_ICON_SIZE, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+                        pGuiGraphics.blit(GUI_LOCATION, l + SHOP_BUTTON_WIDTH - 4, j1 + 5, 0, INDICATOR_ICONS_START_X + (INDICATOR_ICON_SIZE * 4), 0.0F, INDICATOR_ICON_SIZE, INDICATOR_ICON_SIZE, TEXTURE_WIDTH, TEXTURE_HEIGHT);
                     }
                     pGuiGraphics.pose().popPose();
                     k += 20;

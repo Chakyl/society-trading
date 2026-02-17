@@ -13,17 +13,19 @@ public class RandomSetShopOffers extends ShopOffers {
     private int rolledCount;
     private String stageRequired;
     private String stageOverride;
+    private String stageRemoved;
     private List<String> seasonsRequired;
 
     public RandomSetShopOffers() {
-        this(RandomStyle.DEFAULT, 1, "", "", new ArrayList<>());
+        this(RandomStyle.DEFAULT, 1, "", "", "", new ArrayList<>());
     }
 
-    public RandomSetShopOffers(RandomStyle pRandomStyle, int pRolledCount, String pStageRequired, String pStageOverride, List<String> pSeasonsRequired) {
+    public RandomSetShopOffers(RandomStyle pRandomStyle, int pRolledCount, String pStageRequired, String pStageOverride, String pStageRemoved, List<String> pSeasonsRequired) {
         this.randomStyle = pRandomStyle;
         this.rolledCount = pRolledCount;
         this.stageRequired = pStageRequired;
         this.stageOverride = pStageOverride;
+        this.stageRemoved = pStageRemoved;
         this.seasonsRequired = pSeasonsRequired;
     }
 
@@ -41,6 +43,10 @@ public class RandomSetShopOffers extends ShopOffers {
 
     public String getStageOverride() {
         return this.stageOverride;
+    }
+
+    public String getStageRemoved() {
+        return this.stageRemoved;
     }
 
     public List<String> getSeasonsRequired() {
@@ -62,6 +68,8 @@ public class RandomSetShopOffers extends ShopOffers {
     public void setStageOverride(String pStageOverride) {
         this.stageOverride = pStageOverride;
     }
+
+    public void setStageRemoved(String pStageRemoved) { this.stageRemoved = pStageRemoved; }
 
     public void setSeasonsRequired(List<String> pSeasonsRequired) {
         this.seasonsRequired = pSeasonsRequired;

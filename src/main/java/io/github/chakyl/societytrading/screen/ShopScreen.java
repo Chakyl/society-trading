@@ -136,7 +136,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
     }
 
     protected void renderLabels(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
-        int centralX = (5 - this.font.width(TRADES_LABEL) / 2) + 122;
+        int centralX = 88;
         pGuiGraphics.drawString(this.font, this.title, 6, LABEL_Y, 4210752, false);
         pGuiGraphics.drawString(this.font, TRADES_LABEL, centralX, LABEL_Y, 4210752, false);
         pGuiGraphics.drawString(this.font, this.playerInventoryTitle, centralX, 132, 4210752, false);
@@ -385,18 +385,18 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
                 if (pMouseX < this.getX() + 20) {
                     ItemStack itemstack = offer.getResult();
                     pGuiGraphics.renderTooltip(ShopScreen.this.font, itemstack, pMouseX, pMouseY);
-                } else if (pMouseX < this.getX() + 165 && pMouseX > this.getX() + 148) {
+                } else if (pMouseX > this.getX() + 164 && pMouseX < this.getX() + 180) {
                     if (!itemstack2.isEmpty()) {
                         pGuiGraphics.renderTooltip(ShopScreen.this.font, itemstack2, pMouseX, pMouseY);
                     }
-                } else if (pMouseX > this.getX() + 164) {
+                } else if (pMouseX > this.getX() + 180) {
                     if (!rightMostStack.isEmpty()) {
                         pGuiGraphics.renderTooltip(ShopScreen.this.font, rightMostStack, pMouseX, pMouseY);
                     } else if (renderPrice) {
                         this.priceTooltip(pGuiGraphics, offer.getNumismaticsCost(), pMouseX, pMouseY);
                     }
                 }
-                if (renderPrice && pMouseX > this.getX() + 116 && pMouseX < this.getX() + 165) {
+                if (renderPrice && pMouseX > this.getX() + 116 && pMouseX < this.getX() + 180) {
                     this.priceTooltip(pGuiGraphics, offer.getNumismaticsCost(), pMouseX, pMouseY);
                 }
             }

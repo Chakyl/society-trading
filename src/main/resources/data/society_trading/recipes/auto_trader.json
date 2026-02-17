@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "iii",
+    "apa",
+    "iLi"
+  ],
+  "key": {
+    "I": {
+      "tag": "minecraft:planks"
+    },
+    "L": {
+      "item": "minecraft:redstone"
+    },
+    "p": {
+      "item": "minecraft:emerald_block"
+    },
+    "a": {
+      "item": "minecraft:repeater"
+    }
+  },
+  "result": {
+    "item": "society_trading:auto_trader"
+  },
+  "show_notification": true
+}

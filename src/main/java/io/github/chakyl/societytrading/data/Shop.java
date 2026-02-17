@@ -45,6 +45,7 @@ import java.util.Objects;
  * @param entityData         Data on the passed entity that must exist to open the shop
  * @param blockTag           Block tag that opens the scree
  * @param hiddenFromSelector Shops is never shown on the Shop Selector list
+ * @param hiddenFromAutoTrader Shops is never shown on the Shop Selector list on Auto Trader
  * @param selectorWeight     Weight of shop in Shop Selector list for order
  * @param jeiCatalyst        Item used as a catalyst in JEI
  * @param stageRequired      KubeJs stage the player needs to have to see the shop
@@ -55,7 +56,7 @@ import java.util.Objects;
  */
 public record Shop(String shopID, MutableComponent name, String texture, String villagerProfession,
                    EntityType<? extends LivingEntity> entity, String entityData, TagKey<Block> blockTag,
-                   Boolean hiddenFromSelector, int selectorWeight, ItemStack jeiCatalyst,
+                   Boolean hiddenFromSelector, Boolean hiddenFromAutoTrader,int selectorWeight, ItemStack jeiCatalyst,
                    String stageRequired, String stageOverride, List<String> seasonsRequired,
                    ShopOffers trades, List<RandomSetShopOffers> randomSets) implements CodecProvider<Shop> {
 
@@ -63,8 +64,9 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
     public static final List<String> POSSIBLE_SEASONS = Arrays.asList("early_spring", "mid_spring", "late_spring", "early_summer", "mid_summer", "late_summer", "early_autumn", "mid_autumn", "late_autumn", "early_winter", "mid_winter", "late_winter");
     public static final List<String> POSSIBLE_RANDOM_STYLES = Arrays.asList("per_day", "per_player", "per_entity", "default");
     public static List<String> registeredIds = new ArrayList<>();
+
     public Shop(Shop other) {
-        this(other.shopID, other.name, other.texture, other.villagerProfession, other.entity, other.entityData, other.blockTag, other.hiddenFromSelector, other.selectorWeight, other.jeiCatalyst, other.stageRequired, other.stageOverride, other.seasonsRequired, other.trades, other.randomSets);
+        this(other.shopID, other.name, other.texture, other.villagerProfession, other.entity, other.entityData, other.blockTag, other.hiddenFromSelector, other.hiddenFromAutoTrader, other.selectorWeight, other.jeiCatalyst, other.stageRequired, other.stageOverride, other.seasonsRequired, other.trades, other.randomSets);
     }
 
     public int getColor() {
@@ -76,13 +78,14 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
         Preconditions.checkNotNull(this.shopID, "Invalid shop ID!");
         Preconditions.checkNotNull(this.name, "Invalid shop name!");
         Preconditions.checkNotNull(this.texture, "Missing texture!");
-        for (ShopOffer trade : this.trades) {
-            if (registeredIds.contains(trade.getTradeId())) {
-                throw new NullPointerException("Trade given a duplicate ID " + trade.getTradeId());
-            } else {
-                registeredIds.add(trade.getTradeId());
-            }
-        }
+        // This doesn't really work how I want it to rip
+//        for (ShopOffer trade : this.trades) {
+//            if (registeredIds.contains(trade.getTradeId())) {
+//                throw new NullPointerException("Trade given a duplicate ID " + trade.getTradeId());
+//            } else {
+//                registeredIds.add(trade.getTradeId());
+//            }
+//        }
         if (this.seasonsRequired != null) {
             this.seasonsRequired.forEach((season) -> {
                 // Why is Java like that????
@@ -144,6 +147,7 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
             }
             tradeObj.addProperty("stage_required", trade.getStageRequired());
             tradeObj.addProperty("stage_override", trade.getStageOverride());
+            tradeObj.addProperty("stage_removed", trade.getStageRemoved());
             tradeObj.add("seasons_required", tradeSeasonsRequired);
             tradeObj.addProperty("numismatics_cost", trade.getNumismaticsCost());
             tradeObj.addProperty("trade_id", trade.getTradeId());
@@ -163,6 +167,7 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
                     ItemStack offer = ItemAdapter.ITEM_READER.fromJson(json.getAsJsonObject().getAsJsonObject("offer"), ItemStack.class);
                     String tradeStage = "";
                     String tradeStageOverride = "";
+                    String tradeStageRemoved = "";
                     int numismaticsCost = 0;
                     int limit = -1;
                     String tradeId = shopID + ":" + offer.getItem();
@@ -180,6 +185,8 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
                         tradeStage = GsonHelper.getAsString(json.getAsJsonObject(), "stage_required");
                     if (json.getAsJsonObject().has("stage_override"))
                         tradeStageOverride = GsonHelper.getAsString(json.getAsJsonObject(), "stage_override");
+                    if (json.getAsJsonObject().has("stage_removed"))
+                        tradeStageRemoved = GsonHelper.getAsString(json.getAsJsonObject(), "stage_removed");
                     if (json.getAsJsonObject().has("numismatics_cost"))
                         numismaticsCost = GsonHelper.getAsInt(json.getAsJsonObject(), "numismatics_cost");
                     if (json.getAsJsonObject().has("trade_id")) {
@@ -190,9 +197,9 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
                     }
                     if (json.getAsJsonObject().has("second_request")) {
                         ItemStack secondRequest = ItemAdapter.ITEM_READER.fromJson(json.getAsJsonObject().getAsJsonObject("second_request"), ItemStack.class);
-                        trades.add(new ShopOffer(request, secondRequest, offer, tradeUnlockDescription, tradeStage, tradeStageOverride, tradeSeasonsRequired, numismaticsCost, limit, tradeId));
+                        trades.add(new ShopOffer(request, secondRequest, offer, tradeUnlockDescription, tradeStage, tradeStageOverride, tradeStageRemoved, tradeSeasonsRequired, numismaticsCost, limit, tradeId));
                     } else {
-                        trades.add(new ShopOffer(request, offer, tradeUnlockDescription, tradeStage, tradeStageOverride, tradeSeasonsRequired, numismaticsCost, limit, tradeId));
+                        trades.add(new ShopOffer(request, offer, tradeUnlockDescription, tradeStage, tradeStageOverride,tradeStageRemoved, tradeSeasonsRequired, numismaticsCost, limit, tradeId));
                     }
                 }
 
@@ -214,6 +221,8 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
             obj.addProperty("entity_data", input.entityData);
             if (input.blockTag != null) obj.addProperty("block_tag", input.blockTag.location().toString());
             obj.addProperty("hidden_from_selector", input.hiddenFromSelector);
+            obj.addProperty("hidden_from_auto_trader", input.hiddenFromAutoTrader);
+            obj.addProperty("hidden_from_selector", input.hiddenFromSelector);
             obj.addProperty("selector_weight", input.selectorWeight);
             obj.add("jei_catalyst", ItemAdapter.ITEM_READER.toJsonTree(input.jeiCatalyst));
             obj.addProperty("stage_required", input.stageRequired);
@@ -229,6 +238,7 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
                 JsonObject rsObject = new JsonObject();
                 rsObject.addProperty("stage_required", randomSetShopOffers.getStageRequired());
                 rsObject.addProperty("stage_override", randomSetShopOffers.getStageOverride());
+                rsObject.addProperty("stage_removed", randomSetShopOffers.getStageRemoved());
                 JsonArray rsSeasonsRequired = new JsonArray();
                 for (String season : randomSetShopOffers.getSeasonsRequired()) {
                     rsSeasonsRequired.add(season.replace("\"", ""));
@@ -291,6 +301,21 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
                     }
                 }
             }
+            boolean hiddenFromAutoTrader = false;
+            if (obj.has("hidden_from_auto_trader")) {
+                JsonElement el = obj.get("hidden_from_auto_trader");
+
+                if (el != null && !el.isJsonNull()) {
+                    if (el.isJsonPrimitive()) {
+                        JsonPrimitive p = el.getAsJsonPrimitive();
+                        if (p.isBoolean()) {
+                            hiddenFromAutoTrader = p.getAsBoolean();
+                        } else if (p.isNumber()) {
+                            hiddenFromAutoTrader = p.getAsInt() != 0;
+                        }
+                    }
+                }
+            }
             int selectorWeight = 1;
             if (obj.has("selector_weight")) {
                 selectorWeight = (GsonHelper.getAsInt(obj, "selector_weight"));
@@ -325,6 +350,9 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
                     if (objJson.has("stage_override")) {
                         rsTrades.setStageOverride(GsonHelper.getAsString(objJson, "stage_override"));
                     }
+                    if (objJson.has("stage_removed")) {
+                        rsTrades.setStageRemoved(GsonHelper.getAsString(objJson, "stage_removed"));
+                    }
                     List<String> rsSeasonsRequired = new ArrayList<>();
                     if (objJson.has("seasons_required")) {
                         for (JsonElement sjson : GsonHelper.getAsJsonArray(objJson, "seasons_required")) {
@@ -347,7 +375,7 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
                     randomSets.add(rsTrades);
                 }
             }
-            return DataResult.success(Pair.of(new Shop(shopId, name, texture, villagerProfession, entity, entityData, blockTag, hiddenFromSelector, selectorWeight, jeiCatalyst, stageRequired, stageOverride, seasonsRequired, trades, randomSets), input));
+            return DataResult.success(Pair.of(new Shop(shopId, name, texture, villagerProfession, entity, entityData, blockTag, hiddenFromSelector, hiddenFromAutoTrader,  selectorWeight, jeiCatalyst, stageRequired, stageOverride, seasonsRequired, trades, randomSets), input));
         }
 
     }

@@ -2,7 +2,6 @@ package io.github.chakyl.societytrading.trading;
 
 import dev.latvian.mods.kubejs.stages.Stages;
 import io.github.chakyl.societytrading.SocietyTrading;
-import io.github.chakyl.societytrading.util.GeneralUtils;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.player.Player;
@@ -18,21 +17,23 @@ public class ShopOffer {
     private final ItemStack result;
     private final String stageRequired;
     private final String stageOverride;
+    private final String stageRemoved;
     private final List<String> seasonsRequired;
     private final int numismaticsCost;
     private final int limit;
     MutableComponent unlockDescription;
 
-    public ShopOffer(ItemStack pCostA, ItemStack pResult, MutableComponent pUnlockDescription, String pStageRequired, String pStageOverride, List<String> pSeasonsRequired, int pNumismaticsCost, int limit, String tradeId) {
-        this(pCostA, ItemStack.EMPTY, pResult, pUnlockDescription, pStageRequired, pStageOverride, pSeasonsRequired, pNumismaticsCost, limit, tradeId);
+    public ShopOffer(ItemStack pCostA, ItemStack pResult, MutableComponent pUnlockDescription, String pStageRequired, String pStageOverride, String pStageRemoved, List<String> pSeasonsRequired, int pNumismaticsCost, int limit, String tradeId) {
+        this(pCostA, ItemStack.EMPTY, pResult, pUnlockDescription, pStageRequired, pStageOverride, pStageRemoved, pSeasonsRequired, pNumismaticsCost, limit, tradeId);
     }
 
-    public ShopOffer(ItemStack pCostA, ItemStack pCostB, ItemStack pResult, MutableComponent pUnlockDescription, String pStageRequired, String pStageOverride, List<String> pSeasonsRequired, int pNumismaticsCost, int limit, String tradeId) {
+    public ShopOffer(ItemStack pCostA, ItemStack pCostB, ItemStack pResult, MutableComponent pUnlockDescription, String pStageRequired, String pStageOverride, String pStageRemoved, List<String> pSeasonsRequired, int pNumismaticsCost, int limit, String tradeId) {
         this.costA = pCostA;
         this.costB = pCostB;
         this.result = pResult;
         this.stageRequired = pStageRequired;
         this.stageOverride = pStageOverride;
+        this.stageRemoved = pStageRemoved;
         this.seasonsRequired = pSeasonsRequired;
         this.numismaticsCost = pNumismaticsCost;
         this.unlockDescription = pUnlockDescription;
@@ -67,6 +68,11 @@ public class ShopOffer {
     public String getStageOverride() {
         return this.stageOverride;
     }
+
+    public String getStageRemoved() {
+        return this.stageRemoved;
+    }
+
     public MutableComponent getUnlockDescription() {
         return this.unlockDescription;
     }
@@ -87,6 +93,9 @@ public class ShopOffer {
         if (player != null && SocietyTrading.KUBEJS_INSTALLED) {
             if (!this.stageOverride.isEmpty() && Stages.get(player).has(this.stageOverride)) {
                 return true;
+            }
+            if (!this.stageRemoved.isEmpty() && Stages.get(player).has(this.stageRemoved)) {
+                return false;
             }
             if (!this.stageRequired.isEmpty() && !Stages.get(player).has(this.stageRequired)) {
                 return false;

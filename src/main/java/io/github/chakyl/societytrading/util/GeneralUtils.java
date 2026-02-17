@@ -27,4 +27,7 @@ public class GeneralUtils {
             }
         }
     }
+    public static boolean canAffordOrNotRelevant(ShopOffer trade, int balance) {
+        return balance <= 0 || !trade.hasNumismaticsCost() || balance >= trade.getNumismaticsCost();
+    }
 }
