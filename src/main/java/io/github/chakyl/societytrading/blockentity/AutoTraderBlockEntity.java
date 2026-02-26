@@ -50,7 +50,7 @@ public class AutoTraderBlockEntity extends BlockEntity implements TickingBlockEn
     private String selectedShopId = "";
     private String selectedTradeId = "";
     private int progress = 0;
-    private int TRADING_TIME = 200;
+    private int TRADING_TIME = 120;
     private ShopOffer selectedOffer;
     /**
      * TODO:
@@ -152,9 +152,9 @@ public class AutoTraderBlockEntity extends BlockEntity implements TickingBlockEn
     }
 
     private ShopOffer getSelectedShopOfferByIndex() {
-        ShopOffers offers = getSelectedShopByIndex().trades();
+        ShopOffers offers = ShopData.getAutoTraderTrades(getSelectedShopByIndex().trades());
         if (this.selectedTradeIndex == -1 || offers.size() < this.selectedTradeIndex) return null;
-        return getSelectedShopByIndex().trades().get(this.selectedTradeIndex);
+        return offers.get(this.selectedTradeIndex);
     }
 
     private Shop getSelectedShopByIndex() {
@@ -231,8 +231,12 @@ public class AutoTraderBlockEntity extends BlockEntity implements TickingBlockEn
         }
     }
 
+    private boolean accountHasCash() {
+        return Objects.requireNonNull(getCardAccount()).getBalance()  > 0;
+    }
+
     private boolean shouldAttemptPurchase() {
-        return this.selectedOffer.hasNumismaticsCost() && getCardAccount() != null;
+        return this.selectedOffer.hasNumismaticsCost() && getCardAccount() != null && accountHasCash();
     }
 
     private boolean autoTraderCanPurchase() {
