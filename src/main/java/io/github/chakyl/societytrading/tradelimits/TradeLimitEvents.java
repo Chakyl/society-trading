@@ -40,7 +40,7 @@ public class TradeLimitEvents {
 
     @SubscribeEvent
     public static void onLevelTick(TickEvent.LevelTickEvent event) {
-        if (event.side.isServer() && event.level.getDayTime() % 24000 == 0) {
+        if (event.side.isServer() && event.level.getDayTime() % 24000 == 10) {
             for (Player player : event.level.players()) {
                 player.getCapability(TradeLimitProvider.PLAYER_DATA).ifPresent(TradeLimitCapability::clear);
             }
