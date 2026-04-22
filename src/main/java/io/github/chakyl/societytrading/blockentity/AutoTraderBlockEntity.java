@@ -128,6 +128,9 @@ public class AutoTraderBlockEntity extends BlockEntity implements TickingBlockEn
     @Override
     public void serverTick(Level level, BlockPos pos, BlockState state) {
         if (level.getGameTime() % 10 == 0 && this.selectedShopIndex != -1 && this.selectedTradeIndex != -1) {
+            if (level.hasNeighborSignal(pos)) {
+                return;
+            }
             if (this.selectedOffer != null && (isTradable() || (shouldAttemptPurchase() && autoTraderCanPurchase()))) {
                 if (this.progress == 0) {
                     BlockState newState = state.setValue(AutoTraderBlock.WORKING, true);
@@ -153,7 +156,7 @@ public class AutoTraderBlockEntity extends BlockEntity implements TickingBlockEn
 
     private ShopOffer getSelectedShopOfferByIndex() {
         ShopOffers offers = ShopData.getAutoTraderTrades(getSelectedShopByIndex().trades());
-        if (this.selectedTradeIndex == -1 || offers.size() < this.selectedTradeIndex) return null;
+        if (this.selectedTradeIndex == -1 || offers.size() <= this.selectedTradeIndex) return null;
         return offers.get(this.selectedTradeIndex);
     }
 
@@ -239,14 +242,35 @@ public class AutoTraderBlockEntity extends BlockEntity implements TickingBlockEn
         return this.selectedOffer.hasNumismaticsCost() && getCardAccount() != null && accountHasCash();
     }
 
+    /**
+     * This method is extremely important! Yes the logic is very grug developer but it needs to ensure the transaction is valid perfectly
+     * @return whether or not the autotrader processes
+     */
     private boolean autoTraderCanPurchase() {
         int bankAccountBalance = Objects.requireNonNull(getCardAccount()).getBalance();
+        if (!canOutputCraft()) return false;
         if (!canAffordOrNotRelevant(this.selectedOffer, bankAccountBalance)) return false;
         ItemStack inputA = selectedOffer.getCostA();
-        if (inputA.is(NumismaticsTags.AllItemTags.COINS.tag)) return canOutputCraft();
+        ItemStack inputB = selectedOffer.getCostB();
+        boolean hasCoinA = inputA.is(NumismaticsTags.AllItemTags.COINS.tag);
+        boolean hasCoinB = inputB.is(NumismaticsTags.AllItemTags.COINS.tag);
         ItemStack inputASlot = this.inputInventoryA.getStackInSlot(0);
-        if (!(slotMatches(inputA, inputASlot) && inputASlot.getCount() >= inputA.getCount())) return false;
-        return canOutputCraft();
+        ItemStack inputBSlot = this.inputInventoryB.getStackInSlot(0);
+        boolean inputACanTrade = slotMatches(inputA, inputASlot) && inputASlot.getCount() >= inputA.getCount();
+        boolean inputBCanTrade = slotMatches(inputB, inputBSlot) && inputBSlot.getCount() >= inputB.getCount();
+        boolean emptyA = inputA.isEmpty();
+        boolean emptyB = inputB.isEmpty();
+
+        if ((hasCoinA || emptyA) && (hasCoinB || emptyB) && (hasCoinA || hasCoinB)) {
+            return true;
+        }
+        if (!hasCoinA && !hasCoinB) {
+            return inputACanTrade && inputBCanTrade;
+        }
+        if (hasCoinA) return inputBCanTrade;
+        if (hasCoinB) return inputACanTrade;
+
+        return true;
     }
 
     private boolean isTradable() {
