@@ -20,12 +20,20 @@ public class SelectorMenu extends AbstractContainerMenu {
     private final Level level;
 
     public SelectorMenu(int pContainerId, Inventory pPlayerInventory) {
-        this(pContainerId, pPlayerInventory, new ClientSideMerchant(pPlayerInventory.player));
+        this(pContainerId, pPlayerInventory, new ClientSideMerchant(pPlayerInventory.player), "");
     }
 
-    public SelectorMenu(int pContainerId, Inventory pPlayerInventory, Merchant pTrader) {
+    public SelectorMenu(int pContainerId, Inventory pPlayerInventory, String customSelectorId) {
+        this(pContainerId, pPlayerInventory, new ClientSideMerchant(pPlayerInventory.player), customSelectorId);
+    }
+
+    public SelectorMenu(int pContainerId, Inventory pPlayerInventory, Merchant pTrader, String customSelectorId) {
         super(ModElements.Menus.SELECTOR_MENU.get(), pContainerId);
-        this.shops = ShopData.getFilteredShops(ShopRegistry.INSTANCE.getValues(), pPlayerInventory.player);
+        if (customSelectorId.isEmpty()) {
+            this.shops = ShopData.getFilteredShops(ShopRegistry.INSTANCE.getValues(), pPlayerInventory.player, true);
+        } else {
+            this.shops = ShopData.getFilteredShops(ShopData.getCustomSelectorShops(customSelectorId), pPlayerInventory.player, false);
+        }
         this.level = pPlayerInventory.player.level();
     }
 

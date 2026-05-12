@@ -1,6 +1,7 @@
 package io.github.chakyl.societytrading;
 
 import dev.shadowsoffire.placebo.tabs.TabFillingRegistry;
+import io.github.chakyl.societytrading.data.CustomSelectorRegistry;
 import io.github.chakyl.societytrading.data.ShopRegistry;
 import io.github.chakyl.societytrading.registry.ModElements;
 import net.minecraft.resources.ResourceLocation;
@@ -34,6 +35,7 @@ public class SocietyTrading {
             TabFillingRegistry.register(ModElements.Tabs.TAB_KEY, ModElements.Items.AUTO_TRADER);
         });
         ShopRegistry.INSTANCE.registerToBus();
+        CustomSelectorRegistry.INSTANCE.registerToBus();
     }
 
     public static ResourceLocation loc(String path) {
