@@ -55,12 +55,13 @@ public class ShopMenu extends AbstractContainerMenu {
     private int playerBalance = 0;
     private long lastSoundTime;
     protected final DataSlot selectedTradeSlot = DataSlot.standalone();
+    private String previousSelector;
 
     public ShopMenu(int pContainerId, Inventory pPlayerInventory) {
-        this(ModElements.Menus.SHOP_MENU.get(), pContainerId, pPlayerInventory, null, null);
+        this(ModElements.Menus.SHOP_MENU.get(), pContainerId, pPlayerInventory, null, null, null);
     }
 
-    public ShopMenu(MenuType<?> type, int pContainerId, Inventory pPlayerInventory, String shopID, UUID pTargetUUID) {
+    public ShopMenu(MenuType<?> type, int pContainerId, Inventory pPlayerInventory, String shopID, UUID pTargetUUID, String pPreviousSelector) {
         super(type, pContainerId);
         if (shopID != null) {
             DynamicHolder<Shop> shop = ShopRegistry.INSTANCE.holder(new ResourceLocation("society_trading:" + shopID));
@@ -73,6 +74,7 @@ public class ShopMenu extends AbstractContainerMenu {
         this.player = pPlayerInventory.player;
         this.level = pPlayerInventory.player.level();
         this.targetUUID = pTargetUUID;
+        this.previousSelector = pPreviousSelector;
         this.playerInventory = pPlayerInventory;
         this.playerBalance = fetchPlayerBalance();
         this.containerId = pContainerId;
@@ -100,6 +102,8 @@ public class ShopMenu extends AbstractContainerMenu {
         this.selectedTradeSlot.set(i);
         this.selectedTrade = trades.get(i);
     }
+
+    public String getPreviousSelector() { return this.previousSelector; }
 
     public ShopOffer getSelectedTrade() {
         return selectedTrade;

@@ -42,7 +42,7 @@ public class ServerEvents {
                     if (event.getItemStack().getItem() instanceof NameTagItem) {
                         nameTagEntity(event.getItemStack(), (Player) player, (LivingEntity) target);
                     }
-                    openShopMenu(shop, (ServerPlayer) player, shop.shopID(), target.getUUID());
+                    openShopMenu(shop, (ServerPlayer) player, shop.shopID(), target.getUUID(), "");
                     event.setCancellationResult(InteractionResult.SUCCESS);
                     event.setCanceled(true);
                 }
@@ -60,7 +60,7 @@ public class ServerEvents {
                     if (event.getItemStack().getItem() instanceof NameTagItem) {
                         nameTagEntity(event.getItemStack(), (Player) player, (LivingEntity) villager);
                     }
-                    openShopMenu(shop, (ServerPlayer) player, shop.shopID(), villager.getUUID());
+                    openShopMenu(shop, (ServerPlayer) player, shop.shopID(), villager.getUUID(), "");
                     int experience = ((Villager) villager).getVillagerXp();
                     ((Villager) villager).setVillagerXp(experience > 0 ? experience : 1);
                     event.setCancellationResult(InteractionResult.SUCCESS);
@@ -84,7 +84,7 @@ public class ServerEvents {
                 }
                 Shop shop = ShopData.getShopFromBlockState(ShopRegistry.INSTANCE.getValues(), clickedBlock);
                 if (shop != null) {
-                    openShopMenu(shop, (ServerPlayer) player, shop.shopID());
+                    openShopMenu(shop, (ServerPlayer) player, shop.shopID(), "");
                     event.setCancellationResult(InteractionResult.SUCCESS);
                     event.setCanceled(true);
                 }

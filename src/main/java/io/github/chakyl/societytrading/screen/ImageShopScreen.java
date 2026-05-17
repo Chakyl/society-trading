@@ -3,10 +3,7 @@ package io.github.chakyl.societytrading.screen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.ithundxr.createnumismatics.registry.NumismaticsTags;
 import io.github.chakyl.societytrading.SocietyTrading;
-import io.github.chakyl.societytrading.network.PacketHandler;
-import io.github.chakyl.societytrading.network.ServerBoundSearchPacket;
-import io.github.chakyl.societytrading.network.ServerBoundTradeButtonClickPacket;
-import io.github.chakyl.societytrading.network.ServerBoundTriggerBalanceSyncPacket;
+import io.github.chakyl.societytrading.network.*;
 import io.github.chakyl.societytrading.trading.ShopOffer;
 import io.github.chakyl.societytrading.trading.ShopOffers;
 import io.github.chakyl.societytrading.util.ScreenUtils;
@@ -68,8 +65,11 @@ public class ImageShopScreen extends AbstractContainerScreen<ImageShopMenu> {
         this.imageHeight = 226; // 22px increase
     }
 
+    private void postBackButtonClick() {
+        PacketHandler.sendToServer(new ServerBoundOpenSelectorMenuPacket(this.menu.getPreviousSelector()));
+    }
+
     private void postButtonClick() {
-//        this.menu.setSelectionHint(this.shopItem);
         PacketHandler.sendToServer(new ServerBoundTradeButtonClickPacket((byte) this.shopItem));
     }
 
@@ -100,6 +100,11 @@ public class ImageShopScreen extends AbstractContainerScreen<ImageShopMenu> {
         this.searchBox.setX(i + 91);
         this.searchBox.setTextColor(16777215);
         this.addWidget(this.searchBox);
+        if (!this.menu.getPreviousSelector().isEmpty()) {
+            this.addRenderableWidget(Button.builder(Component.translatable("gui.society_trading.back_button"), (button) -> {
+                this.postBackButtonClick();
+            }).bounds(i, j + 142, 76, 18).build());
+        }
     }
 
     public boolean charTyped(char pCodePoint, int pModifiers) {

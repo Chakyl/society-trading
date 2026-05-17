@@ -53,7 +53,13 @@ public class PacketHandler {
                 .consumerMainThread(ServerBoundAutoTradeButtonClickPacket::handle)
                 .add();
 
-//        INSTANCE.messageBuilder(ClientBoundAutoTradeSelectedPacket.class, 6, NetworkDirection.PLAY_TO_CLIENT)
+        INSTANCE.messageBuilder(ServerBoundOpenSelectorMenuPacket.class, 6, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ServerBoundOpenSelectorMenuPacket::encode)
+                .decoder(ServerBoundOpenSelectorMenuPacket::new)
+                .consumerMainThread(ServerBoundOpenSelectorMenuPacket::handle)
+                .add();
+
+//        INSTANCE.messageBuilder(ClientBoundAutoTradeSelectedPacket.class, 7, NetworkDirection.PLAY_TO_CLIENT)
 //                .encoder(ClientBoundAutoTradeSelectedPacket::encode)
 //                .decoder(ClientBoundAutoTradeSelectedPacket::new)
 //                .consumerMainThread(ClientBoundAutoTradeSelectedPacket::handle)

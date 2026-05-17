@@ -59,14 +59,6 @@ public class AutoTraderScreen extends AbstractContainerScreen<AutoTraderMenu> {
         this.imageHeight = 179; // 22px increase
     }
 
-//    private void postSelectorButtonClick() {
-//        PacketHandler.sendToServer(new ServerBoundAutoTradeSelectionButtonClickPacket((byte) this.shopItem));
-//    }
-//
-//    private void postTradeButtonClick() {
-//        PacketHandler.sendToServer(new ServerBoundAutoTradeButtonClickPacket((byte) this.shopItem));
-//    }
-
     protected void init() {
         super.init();
         int i = (this.width - this.imageWidth) / 2;
@@ -81,7 +73,7 @@ public class AutoTraderScreen extends AbstractContainerScreen<AutoTraderMenu> {
             }));
             k += TRADE_BUTTON_HEIGHT;
         }
-        this.addRenderableWidget(Button.builder(Component.literal("Change Shop"), (button) -> {
+        this.addRenderableWidget(Button.builder(Component.translatable("gui.society_trading.auto_trader.change_shop"), (button) -> {
                     Minecraft.getInstance().gameMode.handleInventoryButtonClick(this.menu.containerId, -1);
                 })
                 .bounds(i, j + 92, 76, 18) // Position and size

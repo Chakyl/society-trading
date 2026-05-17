@@ -11,6 +11,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraftforge.network.NetworkHooks;
 
+import static io.github.chakyl.societytrading.util.GeneralUtils.openSelectorMenu;
+
 public class OpenSelectorCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("openselector")
@@ -22,10 +24,7 @@ public class OpenSelectorCommand {
                         })
                         .then(Commands.argument("custom_selector", StringArgumentType.string())
                                 .executes(context -> {
-                                    String customSelector = StringArgumentType.getString(context, "custom_selector");
-                                    NetworkHooks.openScreen(EntityArgument.getPlayer(context, "player"), new SimpleMenuProvider((containerId, inventory, nPlayer) -> new SelectorMenu(containerId, inventory, customSelector), Component.translatable("shop.society_trading.selector.name")), buffer -> {
-                                        buffer.writeUtf(customSelector);
-                                    });
+                                    openSelectorMenu(EntityArgument.getPlayer(context, "player"), StringArgumentType.getString(context, "custom_selector"));
                                     return 1;
                                 })
                         )

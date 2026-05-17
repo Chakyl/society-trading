@@ -28,7 +28,7 @@ public class OpenShopCommand {
                                     DynamicHolder<Shop> shop = ShopRegistry.INSTANCE.holder(new ResourceLocation("society_trading:" + commandShopId));
                                     if (shop.isBound()) {
                                         UUID randomUUID = UUID.randomUUID();
-                                        openShopMenu(shop.get(), targetPlayer, commandShopId, randomUUID);
+                                        openShopMenu(shop.get(), targetPlayer, commandShopId, randomUUID, "");
                                         return 1;
                                     } else {
                                         context.getSource().sendFailure(Component.translatable("command.society_trading.wrong_id", commandShopId));

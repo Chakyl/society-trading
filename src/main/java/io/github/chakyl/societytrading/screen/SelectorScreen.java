@@ -58,11 +58,10 @@ public class SelectorScreen extends AbstractContainerScreen<SelectorMenu> {
         int searchIndex = 0;
         for (Shop shop : shops) {
             if (searchIndex == this.shopItem) {
-                PacketHandler.sendToServer(new ServerBoundOpenShopMenuPacket(shop.shopID(), null));
+                PacketHandler.sendToServer(new ServerBoundOpenShopMenuPacket(shop.shopID(), null, this.menu.getCustomSelectorId()));
             }
             searchIndex++;
         }
-
     }
 
     protected void init() {
