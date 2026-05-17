@@ -12,5 +12,7 @@
 
   "jei.society_trading.category.trades": "Trades",
   "jei.society_trading.category.shops": "Shops",
-  "jei.society_trading.price": "$%s"
+  "jei.society_trading.price": "$%s",
+  "gui.society_trading.auto_trader.change_shop": "Change Shop",
+  "gui.society_trading.back_button": "Back"
 }

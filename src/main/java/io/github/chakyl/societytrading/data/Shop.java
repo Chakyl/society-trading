@@ -37,27 +37,27 @@ import java.util.Objects;
 /**
  * Stores all of the information representing a Shop.
  *
- * @param shopID             The unique ID of the shop
- * @param name               The display name of shop
- * @param texture            The resource location of the texture used for the shopkeeper
- * @param villagerProfession Villager Profession that enables the shop screen to show when interacted
- * @param entity             Living entity that opens the shop screen to show when interacted
- * @param entityData         Data on the passed entity that must exist to open the shop
- * @param blockTag           Block tag that opens the scree
- * @param hiddenFromSelector Shops is never shown on the Shop Selector list
+ * @param shopID               The unique ID of the shop
+ * @param name                 The display name of shop
+ * @param texture              The resource location of the texture used for the shopkeeper
+ * @param villagerProfession   Villager Profession that enables the shop screen to show when interacted
+ * @param entity               Living entity that opens the shop screen to show when interacted
+ * @param entityData           Data on the passed entity that must exist to open the shop
+ * @param blockTag             Block tag that opens the scree
+ * @param hiddenFromSelector   Shops is never shown on the Shop Selector list
  * @param hiddenFromAutoTrader Shops is never shown on the Shop Selector list on Auto Trader
- * @param selectorWeight     Weight of shop in Shop Selector list for order
- * @param jeiCatalyst        Item used as a catalyst in JEI
- * @param stageRequired      KubeJs stage the player needs to have to see the shop
- * @param stageOverride      KubeJs stage that always allows the player to see the shop
- * @param seasonsRequired    Serene Seasons season to display the shop
- * @param trades             Trade object
- * @param randomSets         Sets of randomly rolled trades
+ * @param selectorWeight       Weight of shop in Shop Selector list for order
+ * @param jeiCatalyst          Item used as a catalyst in JEI
+ * @param stageRequired        KubeJs stage the player needs to have to see the shop
+ * @param stageOverride        KubeJs stage that always allows the player to see the shop
+ * @param seasonsRequired      Serene Seasons season to display the shop
+ * @param trades               Trade object
+ * @param randomSets           Sets of randomly rolled trades
  */
 public record Shop(String shopID, MutableComponent name, String texture, String villagerProfession,
                    EntityType<? extends LivingEntity> entity, String entityData, TagKey<Block> blockTag,
-                   Boolean hiddenFromSelector, Boolean hiddenFromAutoTrader,int selectorWeight, ItemStack jeiCatalyst,
-                   String stageRequired, String stageOverride, List<String> seasonsRequired,
+                   Boolean hiddenFromSelector, Boolean hiddenFromAutoTrader, int selectorWeight, ItemStack jeiCatalyst,
+                   String stageRequired, String stageOverride, String displayType, List<String> seasonsRequired,
                    ShopOffers trades, List<RandomSetShopOffers> randomSets) implements CodecProvider<Shop> {
 
     public static final Codec<Shop> CODEC = new ShopCodec();
@@ -66,7 +66,7 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
     public static List<String> registeredIds = new ArrayList<>();
 
     public Shop(Shop other) {
-        this(other.shopID, other.name, other.texture, other.villagerProfession, other.entity, other.entityData, other.blockTag, other.hiddenFromSelector, other.hiddenFromAutoTrader, other.selectorWeight, other.jeiCatalyst, other.stageRequired, other.stageOverride, other.seasonsRequired, other.trades, other.randomSets);
+        this(other.shopID, other.name, other.texture, other.villagerProfession, other.entity, other.entityData, other.blockTag, other.hiddenFromSelector, other.hiddenFromAutoTrader, other.selectorWeight, other.jeiCatalyst, other.stageRequired, other.stageOverride, other.displayType, other.seasonsRequired, other.trades, other.randomSets);
     }
 
     public int getColor() {
@@ -148,6 +148,7 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
             tradeObj.addProperty("stage_required", trade.getStageRequired());
             tradeObj.addProperty("stage_override", trade.getStageOverride());
             tradeObj.addProperty("stage_removed", trade.getStageRemoved());
+            tradeObj.addProperty("image", trade.getImage());
             tradeObj.add("seasons_required", tradeSeasonsRequired);
             tradeObj.addProperty("numismatics_cost", trade.getNumismaticsCost());
             tradeObj.addProperty("trade_id", trade.getTradeId());
@@ -168,6 +169,7 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
                     String tradeStage = "";
                     String tradeStageOverride = "";
                     String tradeStageRemoved = "";
+                    String image = "";
                     int numismaticsCost = 0;
                     int limit = -1;
                     String tradeId = shopID + ":" + offer.getItem();
@@ -187,6 +189,8 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
                         tradeStageOverride = GsonHelper.getAsString(json.getAsJsonObject(), "stage_override");
                     if (json.getAsJsonObject().has("stage_removed"))
                         tradeStageRemoved = GsonHelper.getAsString(json.getAsJsonObject(), "stage_removed");
+                    if (json.getAsJsonObject().has("image"))
+                        image = GsonHelper.getAsString(json.getAsJsonObject(), "image");
                     if (json.getAsJsonObject().has("numismatics_cost"))
                         numismaticsCost = GsonHelper.getAsInt(json.getAsJsonObject(), "numismatics_cost");
                     if (json.getAsJsonObject().has("trade_id")) {
@@ -197,9 +201,9 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
                     }
                     if (json.getAsJsonObject().has("second_request")) {
                         ItemStack secondRequest = ItemAdapter.ITEM_READER.fromJson(json.getAsJsonObject().getAsJsonObject("second_request"), ItemStack.class);
-                        trades.add(new ShopOffer(request, secondRequest, offer, tradeUnlockDescription, tradeStage, tradeStageOverride, tradeStageRemoved, tradeSeasonsRequired, numismaticsCost, limit, tradeId));
+                        trades.add(new ShopOffer(request, secondRequest, offer, tradeUnlockDescription, tradeStage, tradeStageOverride, tradeStageRemoved, image, tradeSeasonsRequired, numismaticsCost, limit, tradeId));
                     } else {
-                        trades.add(new ShopOffer(request, offer, tradeUnlockDescription, tradeStage, tradeStageOverride,tradeStageRemoved, tradeSeasonsRequired, numismaticsCost, limit, tradeId));
+                        trades.add(new ShopOffer(request, offer, tradeUnlockDescription, tradeStage, tradeStageOverride, tradeStageRemoved, image, tradeSeasonsRequired, numismaticsCost, limit, tradeId));
                     }
                 }
 
@@ -227,6 +231,7 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
             obj.add("jei_catalyst", ItemAdapter.ITEM_READER.toJsonTree(input.jeiCatalyst));
             obj.addProperty("stage_required", input.stageRequired);
             obj.addProperty("stage_override", input.stageOverride);
+            obj.addProperty("display_type", input.displayType);
             JsonArray seasonsRequired = new JsonArray();
             obj.add("seasons_required", seasonsRequired);
             for (String season : input.seasonsRequired) {
@@ -332,6 +337,10 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
             if (obj.has("stage_override")) {
                 stageOverride = GsonHelper.getAsString(obj, "stage_override");
             }
+            String displayType = "default";
+            if (obj.has("display_type")) {
+                displayType = GsonHelper.getAsString(obj, "display_type");
+            }
             List<String> seasonsRequired = new ArrayList<>();
             if (obj.has("seasons_required")) {
                 for (JsonElement json : GsonHelper.getAsJsonArray(obj, "seasons_required")) {
@@ -375,7 +384,7 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
                     randomSets.add(rsTrades);
                 }
             }
-            return DataResult.success(Pair.of(new Shop(shopId, name, texture, villagerProfession, entity, entityData, blockTag, hiddenFromSelector, hiddenFromAutoTrader,  selectorWeight, jeiCatalyst, stageRequired, stageOverride, seasonsRequired, trades, randomSets), input));
+            return DataResult.success(Pair.of(new Shop(shopId, name, texture, villagerProfession, entity, entityData, blockTag, hiddenFromSelector, hiddenFromAutoTrader, selectorWeight, jeiCatalyst, stageRequired, stageOverride, displayType, seasonsRequired, trades, randomSets), input));
         }
 
     }

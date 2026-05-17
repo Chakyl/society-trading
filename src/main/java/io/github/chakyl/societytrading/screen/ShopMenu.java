@@ -28,12 +28,11 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ResultContainer;
-import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -55,13 +54,15 @@ public class ShopMenu extends AbstractContainerMenu {
     private int quickSlotIteration = 0;
     private int playerBalance = 0;
     private long lastSoundTime;
+    protected final DataSlot selectedTradeSlot = DataSlot.standalone();
+    private String previousSelector;
 
     public ShopMenu(int pContainerId, Inventory pPlayerInventory) {
-        this(pContainerId, pPlayerInventory, null, null);
+        this(ModElements.Menus.SHOP_MENU.get(), pContainerId, pPlayerInventory, null, null, null);
     }
 
-    public ShopMenu(int pContainerId, Inventory pPlayerInventory, String shopID, UUID pTargetUUID) {
-        super(ModElements.Menus.SHOP_MENU.get(), pContainerId);
+    public ShopMenu(MenuType<?> type, int pContainerId, Inventory pPlayerInventory, String shopID, UUID pTargetUUID, String pPreviousSelector) {
+        super(type, pContainerId);
         if (shopID != null) {
             DynamicHolder<Shop> shop = ShopRegistry.INSTANCE.holder(new ResourceLocation("society_trading:" + shopID));
             this.shop = shop.get();
@@ -73,6 +74,7 @@ public class ShopMenu extends AbstractContainerMenu {
         this.player = pPlayerInventory.player;
         this.level = pPlayerInventory.player.level();
         this.targetUUID = pTargetUUID;
+        this.previousSelector = pPreviousSelector;
         this.playerInventory = pPlayerInventory;
         this.playerBalance = fetchPlayerBalance();
         this.containerId = pContainerId;
@@ -86,6 +88,7 @@ public class ShopMenu extends AbstractContainerMenu {
         for (int k = 0; k < 9; ++k) {
             this.addSlot(new Slot(pPlayerInventory, k, 88 + k * 18, 202));
         }
+        this.addDataSlot(selectedTradeSlot);
         this.broadcastChanges();
     }
 
@@ -95,6 +98,13 @@ public class ShopMenu extends AbstractContainerMenu {
         super.broadcastChanges();
     }
 
+    public void setSelectedTrade(int i) {
+        this.selectedTradeSlot.set(i);
+        this.selectedTrade = trades.get(i);
+    }
+
+    public String getPreviousSelector() { return this.previousSelector; }
+
     public ShopOffer getSelectedTrade() {
         return selectedTrade;
     }
@@ -102,7 +112,7 @@ public class ShopMenu extends AbstractContainerMenu {
     @Override
     public boolean clickMenuButton(Player player, int button) {
         if (button >= 0 && button < this.trades.size()) {
-            this.selectedTrade = trades.get(button);
+            this.setSelectedTrade(button);
             this.quickSlotIteration = 0;
             this.updateResultSlot();
             return true;
@@ -110,7 +120,7 @@ public class ShopMenu extends AbstractContainerMenu {
         return false;
     }
 
-    private void updateResultSlot() {
+    public void updateResultSlot() {
         if (!this.level.isClientSide()) {
             int selectedRecipeIndex = this.trades.indexOf(this.selectedTrade);
             if (selectedRecipeIndex >= 0 && selectedRecipeIndex < this.trades.size()) {
@@ -386,7 +396,7 @@ public class ShopMenu extends AbstractContainerMenu {
         return this.shop.texture();
     }
 
-    private class ShopResultSlot extends Slot {
+    public class ShopResultSlot extends Slot {
         public ShopResultSlot(Container container, int slot, int x, int y) {
             super(container, slot, x, y);
         }

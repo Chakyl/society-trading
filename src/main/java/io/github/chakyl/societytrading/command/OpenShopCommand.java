@@ -5,17 +5,16 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import io.github.chakyl.societytrading.data.Shop;
 import io.github.chakyl.societytrading.data.ShopRegistry;
-import io.github.chakyl.societytrading.screen.ShopMenu;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.SimpleMenuProvider;
-import net.minecraftforge.network.NetworkHooks;
 
 import java.util.UUID;
+
+import static io.github.chakyl.societytrading.util.GeneralUtils.openShopMenu;
 
 public class OpenShopCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -29,14 +28,10 @@ public class OpenShopCommand {
                                     DynamicHolder<Shop> shop = ShopRegistry.INSTANCE.holder(new ResourceLocation("society_trading:" + commandShopId));
                                     if (shop.isBound()) {
                                         UUID randomUUID = UUID.randomUUID();
-                                        NetworkHooks.openScreen(targetPlayer, new SimpleMenuProvider((containerId, inventory, nPlayer) -> new ShopMenu(containerId, inventory, commandShopId, randomUUID), shop.get().name()), buffer -> {
-                                            buffer.writeUtf(commandShopId);
-                                            buffer.writeUUID(randomUUID);
-                                        });
+                                        openShopMenu(shop.get(), targetPlayer, commandShopId, randomUUID, "");
                                         return 1;
                                     } else {
                                         context.getSource().sendFailure(Component.translatable("command.society_trading.wrong_id", commandShopId));
-
                                         return -1;
                                     }
                                 })

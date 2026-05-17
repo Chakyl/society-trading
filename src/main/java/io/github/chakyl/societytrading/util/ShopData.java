@@ -1,13 +1,17 @@
 package io.github.chakyl.societytrading.util;
 
 import dev.latvian.mods.kubejs.stages.Stages;
+import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import io.github.chakyl.societytrading.SocietyTrading;
+import io.github.chakyl.societytrading.data.CustomSelector;
+import io.github.chakyl.societytrading.data.CustomSelectorRegistry;
 import io.github.chakyl.societytrading.data.Shop;
 import io.github.chakyl.societytrading.data.ShopRegistry;
 import io.github.chakyl.societytrading.trading.RandomSetShopOffers;
 import io.github.chakyl.societytrading.trading.ShopOffer;
 import io.github.chakyl.societytrading.trading.ShopOffers;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -18,11 +22,25 @@ import sereneseasons.api.season.SeasonHelper;
 import java.util.*;
 
 public class ShopData {
+    public static Collection<Shop> getCustomSelectorShops(String selectorId) {
+        List<Shop> newShops = new ArrayList<>();
+        DynamicHolder<CustomSelector> selector = CustomSelectorRegistry.INSTANCE.holder(new ResourceLocation("society_trading:" + selectorId));
+        if (selector.isBound()) {
+            for (String shopId : selector.get().shopIds()) {
+                DynamicHolder<Shop> shop = ShopRegistry.INSTANCE.holder(new ResourceLocation("society_trading:" + shopId));
+                if (shop.isBound()) {
+                    newShops.add(shop.get());
+                }
+            }
+        }
+        return newShops;
+    }
 
-    public static Collection<Shop> getFilteredShops(Collection<Shop> shops, Player player) {
+    public static Collection<Shop> getFilteredShops(Collection<Shop> shops, Player player, boolean isGlobal) {
         List<Shop> newShops = new ArrayList<>();
         for (Shop shop : shops) {
-            boolean flag = !shop.hiddenFromSelector();
+            boolean flag = true;
+            if (isGlobal && shop.hiddenFromSelector()) flag = false;
             if (SocietyTrading.SERENE_SEASONS_INSTALLED) {
                 if (!shop.seasonsRequired().isEmpty() && !shop.seasonsRequired().contains(SeasonHelper.getSeasonState(player.level()).getSubSeason().getSerializedName())) {
                     flag = false;

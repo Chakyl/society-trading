@@ -7,10 +7,7 @@ import dev.shadowsoffire.placebo.registry.DeferredHelper;
 import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.block.AutoTraderBlock;
 import io.github.chakyl.societytrading.blockentity.AutoTraderBlockEntity;
-import io.github.chakyl.societytrading.screen.AutoTraderMenu;
-import io.github.chakyl.societytrading.screen.AutoTraderSelectorMenu;
-import io.github.chakyl.societytrading.screen.SelectorMenu;
-import io.github.chakyl.societytrading.screen.ShopMenu;
+import io.github.chakyl.societytrading.screen.*;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -63,14 +60,16 @@ public class ModElements {
     }
 
     public static class Menus {
-        public static final RegistryObject<MenuType<ShopMenu>> SHOP_MENU = R.menu("shop_menu", () -> MenuUtil.bufType((windowId, playerInventory, data) -> new ShopMenu(windowId, playerInventory, data.readUtf(), data.readUUID())));
-        public static final RegistryObject<MenuType<SelectorMenu>> SELECTOR_MENU = R.menu("selector_menu", () -> MenuUtil.type(SelectorMenu::new));
+        public static final RegistryObject<MenuType<ShopMenu>> SHOP_MENU = R.menu("shop_menu", () -> MenuUtil.bufType((windowId, playerInventory, data) -> new ShopMenu(ModElements.Menus.SHOP_MENU.get(), windowId, playerInventory, data.readUtf(), data.readUUID(), data.readUtf())));
+        public static final RegistryObject<MenuType<ImageShopMenu>> IMAGE_SHOP_MENU = R.menu("image_shop_menu", () -> MenuUtil.bufType((windowId, playerInventory, data) -> new ImageShopMenu(windowId, playerInventory, data.readUtf(), data.readUUID(), data.readUtf())));
+        public static final RegistryObject<MenuType<SelectorMenu>> SELECTOR_MENU = R.menu("selector_menu", () -> MenuUtil.bufType((windowId, playerInventory, data) -> new SelectorMenu(windowId, playerInventory, data.readUtf())));
         public static final RegistryObject<MenuType<AutoTraderMenu>> AUTO_TRADER_MENU = R.menu("auto_trader_menu", () -> MenuUtil.bufType(AutoTraderMenu::new));
         public static final RegistryObject<MenuType<AutoTraderSelectorMenu>> AUTO_TRADER_SELECTOR_MENU = R.menu("auto_trader_selector_menu", () -> MenuUtil.bufType(AutoTraderSelectorMenu::new));
 
         private static void bootstrap() {
         }
     }
+
     public static class Tabs {
         public static final ResourceKey<CreativeModeTab> TAB_KEY = ResourceKey.create(Registries.CREATIVE_MODE_TAB, new ResourceLocation(SocietyTrading.MODID, "tab"));
 
