@@ -7,7 +7,6 @@ import io.github.chakyl.societytrading.data.Shop;
 import io.github.chakyl.societytrading.data.ShopRegistry;
 import io.github.chakyl.societytrading.registry.ModElements;
 import io.github.chakyl.societytrading.screen.SelectorMenu;
-import io.github.chakyl.societytrading.screen.ShopMenu;
 import io.github.chakyl.societytrading.util.ShopData;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -27,9 +26,8 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.NetworkHooks;
 
-import java.util.OptionalInt;
-
 import static io.github.chakyl.societytrading.util.GeneralUtils.nameTagEntity;
+import static io.github.chakyl.societytrading.util.GeneralUtils.openShopMenu;
 
 public class ServerEvents {
     @Mod.EventBusSubscriber(modid = SocietyTrading.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
@@ -44,10 +42,7 @@ public class ServerEvents {
                     if (event.getItemStack().getItem() instanceof NameTagItem) {
                         nameTagEntity(event.getItemStack(), (Player) player, (LivingEntity) target);
                     }
-                    NetworkHooks.openScreen((ServerPlayer) player, new SimpleMenuProvider((containerId, inventory, nPlayer) -> new ShopMenu(containerId, inventory, shop.shopID(), target.getUUID()), shop.name()), buffer -> {
-                        buffer.writeUtf(shop.shopID());
-                        buffer.writeUUID(target.getUUID());
-                    });
+                    openShopMenu(shop, (ServerPlayer) player, shop.shopID(), target.getUUID(), "");
                     event.setCancellationResult(InteractionResult.SUCCESS);
                     event.setCanceled(true);
                 }
@@ -65,10 +60,7 @@ public class ServerEvents {
                     if (event.getItemStack().getItem() instanceof NameTagItem) {
                         nameTagEntity(event.getItemStack(), (Player) player, (LivingEntity) villager);
                     }
-                    NetworkHooks.openScreen((ServerPlayer) player, new SimpleMenuProvider((containerId, inventory, nPlayer) -> new ShopMenu(containerId, inventory, shop.shopID(), villager.getUUID()), shop.name()), buffer -> {
-                        buffer.writeUtf(shop.shopID());
-                        buffer.writeUUID(villager.getUUID());
-                    });
+                    openShopMenu(shop, (ServerPlayer) player, shop.shopID(), villager.getUUID(), "");
                     int experience = ((Villager) villager).getVillagerXp();
                     ((Villager) villager).setVillagerXp(experience > 0 ? experience : 1);
                     event.setCancellationResult(InteractionResult.SUCCESS);
@@ -83,15 +75,16 @@ public class ServerEvents {
             BlockState clickedBlock = event.getLevel().getBlockState(event.getPos());
             if (player instanceof ServerPlayer && !player.level().isClientSide) {
                 if (clickedBlock.is(ModElements.Tags.OPENS_SHOP_SELECTOR)) {
-                    OptionalInt optionalint = ((ServerPlayer) player).openMenu(new SimpleMenuProvider((containerId, inventory, nPlayer) -> new SelectorMenu(containerId, inventory), Component.translatable("shop.society_trading.selector.name")));
+                    NetworkHooks.openScreen((ServerPlayer) player, new SimpleMenuProvider((containerId, inventory, nPlayer) -> new SelectorMenu(containerId, inventory, ""), Component.translatable("shop.society_trading.selector.name")), buffer -> {
+                        buffer.writeUtf("");
+                    });
+
                     event.setCancellationResult(InteractionResult.SUCCESS);
                     event.setCanceled(true);
                 }
                 Shop shop = ShopData.getShopFromBlockState(ShopRegistry.INSTANCE.getValues(), clickedBlock);
                 if (shop != null) {
-                    NetworkHooks.openScreen((ServerPlayer) player, new SimpleMenuProvider((containerId, inventory, nPlayer) -> new ShopMenu(containerId, inventory, shop.shopID(), null), shop.name()), buffer -> {
-                        buffer.writeUtf(shop.shopID());
-                    });
+                    openShopMenu(shop, (ServerPlayer) player, shop.shopID(), "");
                     event.setCancellationResult(InteractionResult.SUCCESS);
                     event.setCanceled(true);
                 }

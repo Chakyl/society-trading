@@ -1,6 +1,5 @@
 package io.github.chakyl.societytrading.screen;
 
-import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.data.Shop;
 import io.github.chakyl.societytrading.data.ShopRegistry;
 import io.github.chakyl.societytrading.registry.ModElements;
@@ -18,16 +17,29 @@ import java.util.Collection;
 public class SelectorMenu extends AbstractContainerMenu {
     private final Collection<Shop> shops;
     private final Level level;
+    private String customSelectorId = "";
 
     public SelectorMenu(int pContainerId, Inventory pPlayerInventory) {
-        this(pContainerId, pPlayerInventory, new ClientSideMerchant(pPlayerInventory.player));
+        this(pContainerId, pPlayerInventory, new ClientSideMerchant(pPlayerInventory.player), "");
     }
 
-    public SelectorMenu(int pContainerId, Inventory pPlayerInventory, Merchant pTrader) {
+    public SelectorMenu(int pContainerId, Inventory pPlayerInventory, String customSelectorId) {
+        this(pContainerId, pPlayerInventory, new ClientSideMerchant(pPlayerInventory.player), customSelectorId);
+    }
+
+    public SelectorMenu(int pContainerId, Inventory pPlayerInventory, Merchant pTrader, String customSelectorId) {
         super(ModElements.Menus.SELECTOR_MENU.get(), pContainerId);
-        this.shops = ShopData.getFilteredShops(ShopRegistry.INSTANCE.getValues(), pPlayerInventory.player);
+        if (customSelectorId.isEmpty() || customSelectorId.equals("global")) {
+            this.customSelectorId = "global";
+            this.shops = ShopData.getFilteredShops(ShopRegistry.INSTANCE.getValues(), pPlayerInventory.player, true);
+        } else {
+            this.customSelectorId = customSelectorId;
+            this.shops = ShopData.getFilteredShops(ShopData.getCustomSelectorShops(customSelectorId), pPlayerInventory.player, false);
+        }
         this.level = pPlayerInventory.player.level();
     }
+
+    public String getCustomSelectorId() { return this.customSelectorId; }
 
     public Collection<Shop> getShops() {
         return this.shops;
