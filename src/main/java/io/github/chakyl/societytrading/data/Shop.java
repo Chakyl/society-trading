@@ -149,6 +149,9 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
             tradeObj.addProperty("stage_override", trade.getStageOverride());
             tradeObj.addProperty("stage_removed", trade.getStageRemoved());
             tradeObj.addProperty("image", trade.getImage());
+            if (!Objects.equals(trade.getImageDescription(), Component.empty())) {
+                tradeObj.addProperty("image_description", ((TranslatableContents) trade.getImageDescription().getContents()).getKey());
+            }
             tradeObj.add("seasons_required", tradeSeasonsRequired);
             tradeObj.addProperty("numismatics_cost", trade.getNumismaticsCost());
             tradeObj.addProperty("trade_id", trade.getTradeId());
@@ -191,6 +194,11 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
                         tradeStageRemoved = GsonHelper.getAsString(json.getAsJsonObject(), "stage_removed");
                     if (json.getAsJsonObject().has("image"))
                         image = GsonHelper.getAsString(json.getAsJsonObject(), "image");
+
+                    MutableComponent imageDescription = Component.empty();
+                    if (json.getAsJsonObject().has("image_description")) {
+                        imageDescription = Component.translatable(GsonHelper.getAsString(json.getAsJsonObject(), "image_description"));
+                    }
                     if (json.getAsJsonObject().has("numismatics_cost"))
                         numismaticsCost = GsonHelper.getAsInt(json.getAsJsonObject(), "numismatics_cost");
                     if (json.getAsJsonObject().has("trade_id")) {
@@ -201,9 +209,9 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
                     }
                     if (json.getAsJsonObject().has("second_request")) {
                         ItemStack secondRequest = ItemAdapter.ITEM_READER.fromJson(json.getAsJsonObject().getAsJsonObject("second_request"), ItemStack.class);
-                        trades.add(new ShopOffer(request, secondRequest, offer, tradeUnlockDescription, tradeStage, tradeStageOverride, tradeStageRemoved, image, tradeSeasonsRequired, numismaticsCost, limit, tradeId));
+                        trades.add(new ShopOffer(request, secondRequest, offer, tradeUnlockDescription, tradeStage, tradeStageOverride, tradeStageRemoved, image, imageDescription, tradeSeasonsRequired, numismaticsCost, limit, tradeId));
                     } else {
-                        trades.add(new ShopOffer(request, offer, tradeUnlockDescription, tradeStage, tradeStageOverride, tradeStageRemoved, image, tradeSeasonsRequired, numismaticsCost, limit, tradeId));
+                        trades.add(new ShopOffer(request, offer, tradeUnlockDescription, tradeStage, tradeStageOverride, tradeStageRemoved, image, imageDescription, tradeSeasonsRequired, numismaticsCost, limit, tradeId));
                     }
                 }
 

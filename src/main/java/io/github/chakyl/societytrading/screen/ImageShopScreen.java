@@ -44,12 +44,12 @@ public class ImageShopScreen extends AbstractContainerScreen<ImageShopMenu> {
     private static final int NUMBER_OF_OFFER_BUTTONS = 5;
     private static final int TRADE_BUTTON_X = 5;
     private static final int TRADE_BUTTON_HEIGHT = 22;
-    private static final int TRADE_BUTTON_WIDTH = 140;
+    private static final int TRADE_BUTTON_WIDTH = 126;
     private static final int SCROLLER_HEIGHT = 27;
     private static final int SCROLLER_WIDTH = 6;
     private static final int SCROLL_BAR_HEIGHT = TRADE_BUTTON_HEIGHT * NUMBER_OF_OFFER_BUTTONS;
     private static final int SCROLL_BAR_TOP_POS_Y = 18;
-    private static final int SCROLL_BAR_START_X = 149;
+    private static final int SCROLL_BAR_START_X = 135;
     private static final int LIMIT_ICON_START_X = 320;
     private static final int LIMIT_ICON_SIZE = 9;
     private static final Component TRADES_LABEL = Component.translatable("gui.society_trading.search_trades");
@@ -141,7 +141,11 @@ public class ImageShopScreen extends AbstractContainerScreen<ImageShopMenu> {
 
     protected void renderLabels(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
         int centralX = 88;
-        pGuiGraphics.drawString(this.font, this.title, 158, LABEL_Y, 4210752, false);
+        if (renderImageDescription()) {
+            pGuiGraphics.drawString(this.font, this.menu.getOffers().get(menu.selectedTradeSlot.get()).getImageDescription(), 144, LABEL_Y, 4210752, false);
+        } else {
+            pGuiGraphics.drawString(this.font, this.title, 144, LABEL_Y, 4210752, false);
+        }
         pGuiGraphics.drawString(this.font, TRADES_LABEL, 6, LABEL_Y, 4210752, false);
         pGuiGraphics.drawString(this.font, this.playerInventoryTitle, centralX, 132, 4210752, false);
         if (this.menu.getPlayerBalance() > 0) {
@@ -151,15 +155,23 @@ public class ImageShopScreen extends AbstractContainerScreen<ImageShopMenu> {
         }
     }
 
+    private boolean renderImageDescription() {
+        return hasSelectedTrade() && !Objects.equals(this.menu.getOffers().get(this.menu.selectedTradeSlot.get()).getImageDescription(), Component.empty());
+    }
+
+    private boolean hasSelectedTrade() {
+        int tradeSize = this.menu.getOffers().size();
+        return tradeSize > 0 && this.menu.selectedTradeSlot.get() <= tradeSize;
+    }
+
     protected void renderBg(GuiGraphics pGuiGraphics, float pPartialTick, int pMouseX, int pMouseY) {
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
         this.searchBox.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         pGuiGraphics.blit(GUI_LOCATION, i, j, 0, 0.0F, 0.0F, this.imageWidth, this.imageHeight, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         int selectedTrade = menu.selectedTradeSlot.get();
-        int tradeSize = this.menu.getOffers().size();
-        if (tradeSize > 0 && selectedTrade <= tradeSize) {
-            pGuiGraphics.blit(new ResourceLocation(this.menu.getOffers().get(selectedTrade).getImage() + ".png"), i + 156, j + 18, 0, 0.0F, 0.0F, 140, 110, 140, 110);
+        if (hasSelectedTrade()) {
+            pGuiGraphics.blit(new ResourceLocation(this.menu.getOffers().get(selectedTrade).getImage() + ".png"), i + 142, j + 18, 0, 0.0F, 0.0F, 154, 110, 154, 110);
         }
     }
 

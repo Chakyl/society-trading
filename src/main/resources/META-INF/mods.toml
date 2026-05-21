@@ -16,6 +16,8 @@ displayName="${mod_name}" #mandatory
 
 description='''${mod_description}'''
 
+logoFile="logo.png"
+
 [[dependencies.${mod_id}]]
 modId="minecraft"
 mandatory=true
