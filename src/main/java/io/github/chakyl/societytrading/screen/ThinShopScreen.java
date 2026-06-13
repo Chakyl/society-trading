@@ -30,9 +30,9 @@ import java.util.Objects;
 import static io.github.chakyl.societytrading.util.ShopData.formatPrice;
 
 @OnlyIn(Dist.CLIENT)
-public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
-    private static final ResourceLocation GUI_LOCATION = new ResourceLocation(SocietyTrading.MODID, "textures/gui/shop.png");
-    private static final int TYPE_X_OFFSET = 80;
+public class ThinShopScreen extends AbstractContainerScreen<ThinShopMenu> {
+    private static final ResourceLocation GUI_LOCATION = new ResourceLocation(SocietyTrading.MODID, "textures/gui/thin_shop.png");
+    private static final int TYPE_X_OFFSET = 0;
     private static final int TEXTURE_WIDTH = 512;
     private static final int TEXTURE_HEIGHT = 256;
     private static final int LABEL_Y = 6;
@@ -48,14 +48,14 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
     private static final int LIMIT_ICON_SIZE = 9;
     private static final Component TRADES_LABEL = Component.translatable("gui.society_trading.search_trades");
     private int shopItem;
-    private final TradeOfferButton[] tradeOfferButtons = new TradeOfferButton[NUMBER_OF_OFFER_BUTTONS];
+    private final ThinShopScreen.TradeOfferButton[] tradeOfferButtons = new ThinShopScreen.TradeOfferButton[NUMBER_OF_OFFER_BUTTONS];
     int scrollOff;
     private boolean isDragging;
     private EditBox searchBox;
 
-    public ShopScreen(ShopMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
+    public ThinShopScreen(ThinShopMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
         super(pMenu, pPlayerInventory, pTitle);
-        this.imageWidth = 304;
+        this.imageWidth = 224;
         this.imageHeight = 226;
     }
 
@@ -75,9 +75,9 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
 
         PacketHandler.sendToServer(new ServerBoundTriggerBalanceSyncPacket());
         for (int l = 0; l < NUMBER_OF_OFFER_BUTTONS; ++l) {
-            this.tradeOfferButtons[l] = this.addRenderableWidget(new TradeOfferButton(i + TYPE_X_OFFSET + 8, k, l, (button) -> {
-                if (button instanceof TradeOfferButton) {
-                    this.shopItem = ((TradeOfferButton) button).getIndex() + this.scrollOff;
+            this.tradeOfferButtons[l] = this.addRenderableWidget(new ThinShopScreen.TradeOfferButton(i + TYPE_X_OFFSET + 8, k, l, (button) -> {
+                if (button instanceof ThinShopScreen.TradeOfferButton) {
+                    this.shopItem = ((ThinShopScreen.TradeOfferButton) button).getIndex() + this.scrollOff;
                     this.postButtonClick();
                 }
 
@@ -97,7 +97,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
         if (!this.menu.getPreviousSelector().isEmpty()) {
             this.addRenderableWidget(Button.builder(Component.translatable("gui.society_trading.back_button"), (button) -> {
                 this.postBackButtonClick();
-            }).bounds(i, j + 92, 76, 18).build());
+            }).bounds(i + 176, j + 176, 48, 18).build());
         }
     }
 
@@ -137,11 +137,11 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
     protected void renderLabels(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
         int centralX = TYPE_X_OFFSET + 8;
         pGuiGraphics.drawString(this.font, this.title, 6, LABEL_Y, 4210752, false);
-        pGuiGraphics.drawString(this.font, TRADES_LABEL, centralX, LABEL_Y, 4210752, false);
         pGuiGraphics.drawString(this.font, this.playerInventoryTitle, centralX, 132, 4210752, false);
         if (this.menu.getPlayerBalance() > 0) {
             Component priceStr = Component.translatable("gui.society_trading.balance", "§0" + formatPrice(Integer.valueOf(this.menu.getPlayerBalance()).toString(), false));
             pGuiGraphics.drawString(this.font, priceStr, TYPE_X_OFFSET + 184 - font.width(priceStr) + 32, 132, 16777215, false);
+
         }
     }
 
@@ -150,7 +150,6 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
         int j = (this.height - this.imageHeight) / 2;
         this.searchBox.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         pGuiGraphics.blit(GUI_LOCATION, i, j, 0, 0.0F, 0.0F, this.imageWidth, this.imageHeight, TEXTURE_WIDTH, TEXTURE_HEIGHT);
-        pGuiGraphics.blit(new ResourceLocation(this.menu.getTexture() + ".png"), i + 6, j + 18, 0, 0.0F, 0.0F, 64, 64, 64, 64);
     }
 
     private void renderScroller(GuiGraphics pGuiGraphics, int pPosX, int pPosY, ShopOffers pShopOffers) {
@@ -163,9 +162,9 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
             if (this.scrollOff == i - 1) {
                 i1 = l;
             }
-            pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y + i1, 0, TYPE_X_OFFSET + 224.0F, 0.0F, SCROLLER_WIDTH, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+            pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y + i1, 0, 304.0F, 0.0F, SCROLLER_WIDTH, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         } else {
-            pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y, 0, TYPE_X_OFFSET + 230.0F, 0.0F, SCROLLER_WIDTH, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+            pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y, 0, 310.0F, 0.0F, SCROLLER_WIDTH, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         }
 
     }
@@ -232,12 +231,12 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
                 }
             }
         }
-        for (TradeOfferButton ShopScreen$tradeofferbutton : this.tradeOfferButtons) {
-            if (ShopScreen$tradeofferbutton.isHoveredOrFocused()) {
-                ShopScreen$tradeofferbutton.renderToolTip(pGuiGraphics, pMouseX, pMouseY);
+        for (ThinShopScreen.TradeOfferButton ThinShopScreen$tradeofferbutton : this.tradeOfferButtons) {
+            if (ThinShopScreen$tradeofferbutton.isHoveredOrFocused()) {
+                ThinShopScreen$tradeofferbutton.renderToolTip(pGuiGraphics, pMouseX, pMouseY);
             }
 
-            ShopScreen$tradeofferbutton.visible = ShopScreen$tradeofferbutton.index < this.menu.getOffers().size();
+            ThinShopScreen$tradeofferbutton.visible = ThinShopScreen$tradeofferbutton.index < this.menu.getOffers().size();
         }
         if (!this.menu.canTradeForSelected()) {
             pGuiGraphics.blit(GUI_LOCATION, i + TYPE_X_OFFSET + 175, j + 151, 0, LIMIT_ICON_START_X, 0.0F, LIMIT_ICON_SIZE, LIMIT_ICON_SIZE, TEXTURE_WIDTH, TEXTURE_HEIGHT);
@@ -350,7 +349,7 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
             tooltipList.add(Component.translatable("gui.society_trading.hover_price_one", formatPrice(String.valueOf(price), false)));
             tooltipList.add(Component.translatable("gui.society_trading.hover_price_two").withStyle(ChatFormatting.GREEN));
 
-            pGuiGraphics.renderTooltip(ShopScreen.this.font, tooltipList, Items.ACACIA_FENCE.getDefaultInstance().getTooltipImage(), pMouseX, pMouseY);
+            pGuiGraphics.renderTooltip(ThinShopScreen.this.font, tooltipList, Items.ACACIA_FENCE.getDefaultInstance().getTooltipImage(), pMouseX, pMouseY);
         }
 
         public int getIndex() {
@@ -358,9 +357,9 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
         }
 
         public void renderToolTip(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY) {
-            if (this.isHovered && ShopScreen.this.menu.getOffers().size() > this.index + ShopScreen.this.scrollOff) {
-                boolean noBalance = ShopScreen.this.menu.getPlayerBalance() == 0;
-                ShopOffer offer = ShopScreen.this.menu.getOffers().get(this.index + ShopScreen.this.scrollOff);
+            if (this.isHovered && ThinShopScreen.this.menu.getOffers().size() > this.index + ThinShopScreen.this.scrollOff) {
+                boolean noBalance = ThinShopScreen.this.menu.getPlayerBalance() == 0;
+                ShopOffer offer = ThinShopScreen.this.menu.getOffers().get(this.index + ThinShopScreen.this.scrollOff);
                 ItemStack itemstack1 = offer.getCostA();
                 ItemStack itemstack2 = offer.getCostB();
                 ItemStack rightMostStack = itemstack1;
@@ -383,14 +382,14 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
 
                 if (pMouseX < this.getX() + 20) {
                     ItemStack itemstack = offer.getResult();
-                    pGuiGraphics.renderTooltip(ShopScreen.this.font, itemstack, pMouseX, pMouseY);
+                    pGuiGraphics.renderTooltip(ThinShopScreen.this.font, itemstack, pMouseX, pMouseY);
                 } else if (pMouseX > this.getX() + TYPE_X_OFFSET + 84 && pMouseX < this.getX() + TYPE_X_OFFSET + 100) {
                     if (!itemstack2.isEmpty()) {
-                        pGuiGraphics.renderTooltip(ShopScreen.this.font, itemstack2, pMouseX, pMouseY);
+                        pGuiGraphics.renderTooltip(ThinShopScreen.this.font, itemstack2, pMouseX, pMouseY);
                     }
                 } else if (pMouseX > this.getX() + TYPE_X_OFFSET + 100) {
                     if (!rightMostStack.isEmpty()) {
-                        pGuiGraphics.renderTooltip(ShopScreen.this.font, rightMostStack, pMouseX, pMouseY);
+                        pGuiGraphics.renderTooltip(ThinShopScreen.this.font, rightMostStack, pMouseX, pMouseY);
                     } else if (renderPrice) {
                         this.priceTooltip(pGuiGraphics, offer.getNumismaticsCost(), pMouseX, pMouseY);
                     }

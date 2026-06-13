@@ -239,12 +239,10 @@ public class ImageShopScreen extends AbstractContainerScreen<ImageShopMenu> {
                         pGuiGraphics.drawString(this.font, priceStr, l + TRADE_BUTTON_WIDTH - font.width(priceStr) - priceOffset, j1 + 4, 16777215, true);
                     }
                     //result
-                    int lineLength = 102;
+                    int lineLength = 105;
                     Component itemName = itemstack3.getHoverName();
                     boolean oneLine = this.font.split(itemName, lineLength).size() == 1;
-                    pGuiGraphics.renderFakeItem(itemstack3, l + 1, j1);
-                    pGuiGraphics.renderItemDecorations(this.font, itemstack3, l + 1, j1);
-                    ScreenUtils.drawWordWrapShadow(pGuiGraphics, this.font, itemName.plainCopy().withStyle(ChatFormatting.WHITE), l + 16 + 4, j1 + (oneLine ? 4 : 0), lineLength, 16777215);
+                    ScreenUtils.drawWordWrapShadow(pGuiGraphics, this.font, itemName.plainCopy().withStyle(ChatFormatting.WHITE), l + 4, j1 + (oneLine ? 4 : 0), lineLength, 16777215);
                     pGuiGraphics.pose().popPose();
                     k += TRADE_BUTTON_HEIGHT;
                     ++i1;

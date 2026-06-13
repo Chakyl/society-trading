@@ -1,14 +1,13 @@
 package io.github.chakyl.societytrading.util;
 
-import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import io.github.chakyl.societytrading.data.Shop;
 import io.github.chakyl.societytrading.registry.ModElements;
 import io.github.chakyl.societytrading.screen.ImageShopMenu;
 import io.github.chakyl.societytrading.screen.SelectorMenu;
 import io.github.chakyl.societytrading.screen.ShopMenu;
+import io.github.chakyl.societytrading.screen.ThinShopMenu;
 import io.github.chakyl.societytrading.tradelimits.TradeLimitProvider;
 import io.github.chakyl.societytrading.trading.ShopOffer;
-import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleMenuProvider;
@@ -51,15 +50,25 @@ public class GeneralUtils {
             buffer.writeUtf(customSelector);
         });
     }
+
     public static void openShopMenu(Shop shop, ServerPlayer player, String shopID,  @Nonnull String previousSelector) {
+        UUID randomUUID = UUID.randomUUID();
         if (shop.displayType().equals("image")) {
-            NetworkHooks.openScreen(player, new SimpleMenuProvider((containerId, inventory, nPlayer) -> new ImageShopMenu(containerId, inventory, shopID, null, previousSelector), shop.name()), buffer -> {
+            NetworkHooks.openScreen(player, new SimpleMenuProvider((containerId, inventory, nPlayer) -> new ImageShopMenu(containerId, inventory, shopID, randomUUID, previousSelector), shop.name()), buffer -> {
                 buffer.writeUtf(shopID);
+                buffer.writeUUID(randomUUID);
+                buffer.writeUtf(previousSelector);
+            });
+        } else if (shop.displayType().equals("thin")) {
+            NetworkHooks.openScreen(player, new SimpleMenuProvider((containerId, inventory, nPlayer) -> new ThinShopMenu(containerId, inventory, shopID, randomUUID, previousSelector), shop.name()), buffer -> {
+                buffer.writeUtf(shopID);
+                buffer.writeUUID(randomUUID);
                 buffer.writeUtf(previousSelector);
             });
         } else {
-            NetworkHooks.openScreen(player, new SimpleMenuProvider((containerId, inventory, nPlayer) -> new ShopMenu(ModElements.Menus.SHOP_MENU.get(), containerId, inventory, shopID, null, previousSelector), shop.name()), buffer -> {
+            NetworkHooks.openScreen(player, new SimpleMenuProvider((containerId, inventory, nPlayer) -> new ShopMenu(ModElements.Menus.SHOP_MENU.get(), containerId, inventory, shopID, randomUUID, previousSelector), shop.name()), buffer -> {
                 buffer.writeUtf(shopID);
+                buffer.writeUUID(randomUUID);
                 buffer.writeUtf(previousSelector);
             });
         }
@@ -68,6 +77,12 @@ public class GeneralUtils {
     public static void openShopMenu(Shop shop, ServerPlayer player, String shopID, UUID entityUUID, @Nonnull String previousSelector) {
         if (shop.displayType().equals("image")) {
             NetworkHooks.openScreen(player, new SimpleMenuProvider((containerId, inventory, nPlayer) -> new ImageShopMenu(containerId, inventory, shopID, entityUUID, previousSelector), shop.name()), buffer -> {
+                buffer.writeUtf(shopID);
+                buffer.writeUUID(entityUUID);
+                buffer.writeUtf(previousSelector);
+            });
+        } else if (shop.displayType().equals("thin")) {
+            NetworkHooks.openScreen(player, new SimpleMenuProvider((containerId, inventory, nPlayer) -> new ThinShopMenu(containerId, inventory, shopID, entityUUID, previousSelector), shop.name()), buffer -> {
                 buffer.writeUtf(shopID);
                 buffer.writeUUID(entityUUID);
                 buffer.writeUtf(previousSelector);

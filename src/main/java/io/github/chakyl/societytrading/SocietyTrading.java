@@ -23,6 +23,7 @@ public class SocietyTrading {
     public static boolean KUBEJS_INSTALLED = false;
     public static boolean NUMISMATICS_INSTALLED = false;
     public static boolean NUMISMATICS_UTILS_INSTALLED = false;
+
     public SocietyTrading() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         modEventBus.register(this);

@@ -20,6 +20,7 @@ public class ClientModEvents {
         event.enqueueWork(() -> {
             MenuScreens.register(ModElements.Menus.SHOP_MENU.get(), ShopScreen::new);
             MenuScreens.register(ModElements.Menus.IMAGE_SHOP_MENU.get(), ImageShopScreen::new);
+            MenuScreens.register(ModElements.Menus.THIN_SHOP_MENU.get(), ThinShopScreen::new);
             MenuScreens.register(ModElements.Menus.SELECTOR_MENU.get(), SelectorScreen::new);
             MenuScreens.register(ModElements.Menus.AUTO_TRADER_MENU.get(), AutoTraderScreen::new);
             MenuScreens.register(ModElements.Menus.AUTO_TRADER_SELECTOR_MENU.get(), AutoTraderSelectorScreen::new);

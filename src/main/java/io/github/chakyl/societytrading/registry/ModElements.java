@@ -62,6 +62,7 @@ public class ModElements {
     public static class Menus {
         public static final RegistryObject<MenuType<ShopMenu>> SHOP_MENU = R.menu("shop_menu", () -> MenuUtil.bufType((windowId, playerInventory, data) -> new ShopMenu(ModElements.Menus.SHOP_MENU.get(), windowId, playerInventory, data.readUtf(), data.readUUID(), data.readUtf())));
         public static final RegistryObject<MenuType<ImageShopMenu>> IMAGE_SHOP_MENU = R.menu("image_shop_menu", () -> MenuUtil.bufType((windowId, playerInventory, data) -> new ImageShopMenu(windowId, playerInventory, data.readUtf(), data.readUUID(), data.readUtf())));
+        public static final RegistryObject<MenuType<ThinShopMenu>> THIN_SHOP_MENU = R.menu("thin_shop_menu", () -> MenuUtil.bufType((windowId, playerInventory, data) -> new ThinShopMenu(windowId, playerInventory, data.readUtf(), data.readUUID(), data.readUtf())));
         public static final RegistryObject<MenuType<SelectorMenu>> SELECTOR_MENU = R.menu("selector_menu", () -> MenuUtil.bufType((windowId, playerInventory, data) -> new SelectorMenu(windowId, playerInventory, data.readUtf())));
         public static final RegistryObject<MenuType<AutoTraderMenu>> AUTO_TRADER_MENU = R.menu("auto_trader_menu", () -> MenuUtil.bufType(AutoTraderMenu::new));
         public static final RegistryObject<MenuType<AutoTraderSelectorMenu>> AUTO_TRADER_SELECTOR_MENU = R.menu("auto_trader_selector_menu", () -> MenuUtil.bufType(AutoTraderSelectorMenu::new));

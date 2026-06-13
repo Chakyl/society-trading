@@ -78,18 +78,25 @@ public class ShopMenu extends AbstractContainerMenu {
         this.playerInventory = pPlayerInventory;
         this.playerBalance = fetchPlayerBalance();
         this.containerId = pContainerId;
-        this.resultSlot = this.addSlot(new ShopResultSlot(this.result, 0, 276, 148));
+
+        this.resultSlot = initializeSlots(pPlayerInventory);
+
+        this.addDataSlot(selectedTradeSlot);
+        this.broadcastChanges();
+    }
+
+    private Slot initializeSlots(Inventory pPlayerInventory) {
+        int offset = this instanceof ThinShopMenu ? 0 : 80;
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 9; ++j) {
-                this.addSlot(new Slot(pPlayerInventory, j + i * 9 + 9, 88 + j * 18, 144 + i * 18));
+                this.addSlot(new Slot(pPlayerInventory, j + i * 9 + 9, offset + 8 + j * 18, 144 + i * 18));
             }
         }
 
         for (int k = 0; k < 9; ++k) {
-            this.addSlot(new Slot(pPlayerInventory, k, 88 + k * 18, 202));
+            this.addSlot(new Slot(pPlayerInventory, k, offset + 8 + k * 18, 202));
         }
-        this.addDataSlot(selectedTradeSlot);
-        this.broadcastChanges();
+        return this.addSlot(new ShopResultSlot(this.result, 0, offset + 196, 148));
     }
 
     @Override
