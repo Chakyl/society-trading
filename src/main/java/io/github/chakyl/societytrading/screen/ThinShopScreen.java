@@ -64,7 +64,7 @@ public class ThinShopScreen extends AbstractContainerScreen<ThinShopMenu> {
     }
 
     private void postButtonClick() {
-        PacketHandler.sendToServer(new ServerBoundTradeButtonClickPacket((byte) this.shopItem));
+        PacketHandler.sendToServer(new ServerBoundTradeButtonClickPacket((short) this.shopItem));
     }
 
     protected void init() {
@@ -153,20 +153,14 @@ public class ThinShopScreen extends AbstractContainerScreen<ThinShopMenu> {
     }
 
     private void renderScroller(GuiGraphics pGuiGraphics, int pPosX, int pPosY, ShopOffers pShopOffers) {
-        int i = pShopOffers.size() + 1 - NUMBER_OF_OFFER_BUTTONS;
-        if (i > 1) {
-            int j = SCROLL_BAR_HEIGHT - (SCROLLER_HEIGHT + (i - 1) * SCROLL_BAR_HEIGHT / i);
-            int k = j / i + SCROLL_BAR_HEIGHT / i;
-            int l = SCROLL_BAR_HEIGHT - SCROLLER_HEIGHT;
-            int i1 = Math.min(l, this.scrollOff * k);
-            if (this.scrollOff == i - 1) {
-                i1 = l;
-            }
-            pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y + i1, 0, 304.0F, 0.0F, SCROLLER_WIDTH, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+        int totalItems = pShopOffers.size() + 1 - NUMBER_OF_OFFER_BUTTONS;
+        if (totalItems > 1) {
+            int scrollbarSize = SCROLL_BAR_HEIGHT - SCROLLER_HEIGHT;
+            int scrollerOffset = Mth.clamp(Math.round((float) this.scrollOff / (float) (totalItems - 1) * scrollbarSize), 0, scrollbarSize);
+            pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y + scrollerOffset, 0, 304.0F, 0.0F, SCROLLER_WIDTH, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         } else {
             pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y, 0, 310.0F, 0.0F, SCROLLER_WIDTH, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         }
-
     }
 
     /**
@@ -283,6 +277,7 @@ public class ThinShopScreen extends AbstractContainerScreen<ThinShopMenu> {
         if (this.canScroll(i)) {
             int j = i - NUMBER_OF_OFFER_BUTTONS;
             this.scrollOff = Mth.clamp((int) ((double) this.scrollOff - pDelta), 0, j);
+            SocietyTrading.LOGGER.info(this.scrollOff);
         }
 
         return true;

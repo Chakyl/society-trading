@@ -5,6 +5,7 @@ import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.data.Shop;
 import io.github.chakyl.societytrading.network.PacketHandler;
 import io.github.chakyl.societytrading.network.ServerBoundOpenShopMenuPacket;
+import io.github.chakyl.societytrading.trading.ShopOffers;
 import io.github.chakyl.societytrading.util.ScreenUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
@@ -102,16 +103,11 @@ public class SelectorScreen extends AbstractContainerScreen<SelectorMenu> {
     }
 
     private void renderScroller(GuiGraphics pGuiGraphics, int pPosX, int pPosY, Collection<Shop> pShops) {
-        int i = pShops.size() + 1 - NUMBER_OF_SHOP_BUTTONS;
-        if (i > 1) {
-            int j = SCROLL_BAR_HEIGHT - (SCROLLER_HEIGHT + (i - 1) * SCROLL_BAR_HEIGHT / i);
-            int k = j / i + SCROLL_BAR_HEIGHT / i;
-            int l = SCROLL_BAR_HEIGHT - SCROLLER_HEIGHT;
-            int i1 = Math.min(l, this.scrollOff * k);
-            if (this.scrollOff == i - 1) {
-                i1 = l;
-            }
-            pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y + i1, 0, 176.0F, 0.0F, SCROLLER_WIDTH, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+        int totalItems = pShops.size() + 1 - NUMBER_OF_SHOP_BUTTONS;
+        if (totalItems > 1) {
+            int scrollbarSize = SCROLL_BAR_HEIGHT - SCROLLER_HEIGHT;
+            int scrollerOffset = Mth.clamp(Math.round((float) this.scrollOff / (float) (totalItems - 1) * scrollbarSize), 0, scrollbarSize);
+            pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y + scrollerOffset, 0, 304.0F, 0.0F, SCROLLER_WIDTH, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         } else {
             pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y, 0, 199, 0.0F, SCROLLER_WIDTH, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         }

@@ -70,7 +70,7 @@ public class ImageShopScreen extends AbstractContainerScreen<ImageShopMenu> {
     }
 
     private void postButtonClick() {
-        PacketHandler.sendToServer(new ServerBoundTradeButtonClickPacket((byte) this.shopItem));
+        PacketHandler.sendToServer(new ServerBoundTradeButtonClickPacket((short) this.shopItem));
     }
 
     protected void init() {
@@ -239,7 +239,7 @@ public class ImageShopScreen extends AbstractContainerScreen<ImageShopMenu> {
                         pGuiGraphics.drawString(this.font, priceStr, l + TRADE_BUTTON_WIDTH - font.width(priceStr) - priceOffset, j1 + 4, 16777215, true);
                     }
                     //result
-                    int lineLength = 105;
+                    int lineLength = 104;
                     Component itemName = itemstack3.getHoverName();
                     boolean oneLine = this.font.split(itemName, lineLength).size() == 1;
                     ScreenUtils.drawWordWrapShadow(pGuiGraphics, this.font, itemName.plainCopy().withStyle(ChatFormatting.WHITE), l + 4, j1 + (oneLine ? 4 : 0), lineLength, 16777215);

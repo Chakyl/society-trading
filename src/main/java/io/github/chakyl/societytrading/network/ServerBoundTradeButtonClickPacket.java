@@ -8,18 +8,18 @@ import net.minecraftforge.network.NetworkEvent;
 import java.util.function.Supplier;
 
 public class ServerBoundTradeButtonClickPacket {
-    private final byte button;
+    private final short button;
     
-    public ServerBoundTradeButtonClickPacket(byte button) {
+    public ServerBoundTradeButtonClickPacket(short button) {
         this.button = button;
     }
 
     public ServerBoundTradeButtonClickPacket(FriendlyByteBuf buffer) {
-        this(buffer.readByte());
+        this(buffer.readShort());
     }
 
     public void encode(FriendlyByteBuf buffer) {
-        buffer.writeByte(this.button);
+        buffer.writeShort(this.button);
     }
 
     public void handle(Supplier<NetworkEvent.Context> context) {
