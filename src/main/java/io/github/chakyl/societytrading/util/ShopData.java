@@ -12,8 +12,6 @@ import io.github.chakyl.societytrading.trading.ShopOffer;
 import io.github.chakyl.societytrading.trading.ShopOffers;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -44,8 +42,7 @@ public class ShopData {
             boolean flag = true;
             if (isGlobal && shop.hiddenFromSelector()) flag = false;
             if (SocietyTrading.SERENE_SEASONS_INSTALLED) {
-                MinecraftServer server = player.getServer();
-                if (!shop.seasonsRequired().isEmpty() && !shop.seasonsRequired().contains(SeasonHelper.getSeasonState(Objects.requireNonNull(server.getLevel(server.overworld().dimension()))).getSubSeason().getSerializedName())) {
+                if (!shop.seasonsRequired().isEmpty() && !shop.seasonsRequired().contains(SeasonHelper.getSeasonState(player.level()).getSubSeason().getSerializedName())) {
                     flag = false;
                 }
             }
