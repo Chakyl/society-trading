@@ -107,7 +107,7 @@ public class SelectorScreen extends AbstractContainerScreen<SelectorMenu> {
         if (totalItems > 1) {
             int scrollbarSize = SCROLL_BAR_HEIGHT - SCROLLER_HEIGHT;
             int scrollerOffset = Mth.clamp(Math.round((float) this.scrollOff / (float) (totalItems - 1) * scrollbarSize), 0, scrollbarSize);
-            pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y + scrollerOffset, 0, 304.0F, 0.0F, SCROLLER_WIDTH, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+            pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y + scrollerOffset, 0, 176.0F, 0.0F, SCROLLER_WIDTH, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         } else {
             pGuiGraphics.blit(GUI_LOCATION, pPosX + SCROLL_BAR_START_X, pPosY + SCROLL_BAR_TOP_POS_Y, 0, 199, 0.0F, SCROLLER_WIDTH, SCROLLER_HEIGHT, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         }
