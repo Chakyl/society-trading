@@ -304,7 +304,7 @@ public class ShopMenu extends AbstractContainerMenu {
                 if (pIndex == this.resultSlot.index) {
                     Item item = slotStack.getItem();
                     item.onCraftedBy(slotStack, pPlayer.level(), pPlayer);
-                    if (!this.moveItemStackTo(slotStack, 1, this.slots.size(), true)) {
+                    if (!this.moveItemStackTo(slotStack, 0, this.slots.size() - 1, true)) {
                         return ItemStack.EMPTY;
                     }
                     slot.onQuickCraft(slotStack, stack);
