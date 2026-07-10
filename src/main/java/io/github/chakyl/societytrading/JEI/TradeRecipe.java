@@ -6,6 +6,8 @@ import io.github.chakyl.societytrading.trading.ShopOffer;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.List;
+
 public class TradeRecipe {
     final MutableComponent shopName;
     final ItemStack costA;
@@ -13,9 +15,11 @@ public class TradeRecipe {
     final ItemStack result;
     final ItemStack catalyst;
     final int numismaticsCost;
+    final List<String> seasonsRequired;
     final MutableComponent unlockDescription;
     final boolean hideCostA;
     final boolean hideCostB;
+    final int limit;
 
     public TradeRecipe(ShopOffer shop, ItemStack catalyst, MutableComponent shopName) {
         this.shopName = shopName;
@@ -24,9 +28,10 @@ public class TradeRecipe {
         this.result = shop.getResult();
         this.catalyst = catalyst;
         this.numismaticsCost = shop.getNumismaticsCost();
+        this.seasonsRequired = shop.getSeasonsRequired();
         this.unlockDescription = shop.getUnlockDescription();
         this.hideCostA = (SocietyTrading.NUMISMATICS_INSTALLED && this.costA.is(NumismaticsTags.AllItemTags.COINS.tag) && this.numismaticsCost > 0);
         this.hideCostB = this.costB == ItemStack.EMPTY || (SocietyTrading.NUMISMATICS_INSTALLED && this.costB.is(NumismaticsTags.AllItemTags.COINS.tag) && this.numismaticsCost > 0);
-
+        this.limit = shop.getLimit();
     }
 }

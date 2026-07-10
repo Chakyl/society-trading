@@ -106,9 +106,14 @@ public class ShopMenu extends AbstractContainerMenu {
         super.broadcastChanges();
     }
 
-    public void setSelectedTrade(int i) {
-        this.selectedTradeSlot.set(i);
-        this.selectedTrade = trades.get(i);
+    public void setSelectedTradesToFirst() {
+        this.setSelectedTrade(this.trades.get(0));
+    }
+
+    public void setSelectedTrade(ShopOffer offer) {
+        this.selectedTrade = offer;
+        int syncIndex = this.trades.indexOf(offer);
+        this.selectedTradeSlot.set(Math.max(syncIndex, 0));
     }
 
     public String getPreviousSelector() { return this.previousSelector; }
@@ -117,21 +122,22 @@ public class ShopMenu extends AbstractContainerMenu {
         return selectedTrade;
     }
 
-    @Override
-    public boolean clickMenuButton(Player player, int button) {
-        if (button >= 0 && button < this.trades.size()) {
-            this.setSelectedTrade(button);
-            this.quickSlotIteration = 0;
-            this.updateResultSlot();
-            return true;
+    public boolean clickTradeById(Player player, String tradeId) {
+        if (tradeId == null || this.trades == null) return false;
+        for (ShopOffer offer : this.trades) {
+            if (tradeId.equals(offer.getTradeId())) {
+                this.setSelectedTrade(offer);
+                this.quickSlotIteration = 0;
+                this.updateResultSlot();
+                return true;
+            }
         }
         return false;
     }
 
     public void updateResultSlot() {
         if (!this.level.isClientSide()) {
-            int selectedRecipeIndex = this.trades.indexOf(this.selectedTrade);
-            if (selectedRecipeIndex >= 0 && selectedRecipeIndex < this.trades.size()) {
+            if (this.selectedTrade != null && this.trades.contains(this.selectedTrade)) {
                 if (this.canTradeFor(this.selectedTrade)) {
                     ItemStack result = this.selectedTrade.getResult();
                     this.resultSlot.set(result.copy());

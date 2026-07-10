@@ -12,6 +12,6 @@ public class ImageShopMenu extends ShopMenu {
 
     public ImageShopMenu(int pContainerId, Inventory pPlayerInventory, String shopID, UUID pTargetUUID, String pPreviousSelector) {
         super(ModElements.Menus.IMAGE_SHOP_MENU.get(), pContainerId, pPlayerInventory, shopID, pTargetUUID, pPreviousSelector);
-        this.setSelectedTrade(0);
+        this.setSelectedTradesToFirst();
     }
 }

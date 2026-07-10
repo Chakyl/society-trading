@@ -78,14 +78,6 @@ public record Shop(String shopID, MutableComponent name, String texture, String 
         Preconditions.checkNotNull(this.shopID, "Invalid shop ID!");
         Preconditions.checkNotNull(this.name, "Invalid shop name!");
         Preconditions.checkNotNull(this.texture, "Missing texture!");
-        // This doesn't really work how I want it to rip
-//        for (ShopOffer trade : this.trades) {
-//            if (registeredIds.contains(trade.getTradeId())) {
-//                throw new NullPointerException("Trade given a duplicate ID " + trade.getTradeId());
-//            } else {
-//                registeredIds.add(trade.getTradeId());
-//            }
-//        }
         if (this.seasonsRequired != null) {
             this.seasonsRequired.forEach((season) -> {
                 // Why is Java like that????

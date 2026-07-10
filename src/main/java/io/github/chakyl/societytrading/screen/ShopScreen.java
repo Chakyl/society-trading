@@ -47,7 +47,6 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
     private static final int LIMIT_ICON_START_X = TYPE_X_OFFSET + 240;
     private static final int LIMIT_ICON_SIZE = 9;
     private static final Component TRADES_LABEL = Component.translatable("gui.society_trading.search_trades");
-    private int shopItem;
     private final TradeOfferButton[] tradeOfferButtons = new TradeOfferButton[NUMBER_OF_OFFER_BUTTONS];
     int scrollOff;
     private boolean isDragging;
@@ -63,10 +62,6 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
         PacketHandler.sendToServer(new ServerBoundOpenSelectorMenuPacket(this.menu.getPreviousSelector()));
     }
 
-    private void postButtonClick() {
-        PacketHandler.sendToServer(new ServerBoundTradeButtonClickPacket((short) this.shopItem));
-    }
-
     protected void init() {
         super.init();
         int i = (this.width - this.imageWidth) / 2;
@@ -77,10 +72,13 @@ public class ShopScreen extends AbstractContainerScreen<ShopMenu> {
         for (int l = 0; l < NUMBER_OF_OFFER_BUTTONS; ++l) {
             this.tradeOfferButtons[l] = this.addRenderableWidget(new TradeOfferButton(i + TYPE_X_OFFSET + 8, k, l, (button) -> {
                 if (button instanceof TradeOfferButton) {
-                    this.shopItem = ((TradeOfferButton) button).getIndex() + this.scrollOff;
-                    this.postButtonClick();
+                    int visualIndex = ((TradeOfferButton) button).getIndex() + this.scrollOff;
+                    ShopOffers currentOffers = this.menu.getOffers();
+                    if (visualIndex < currentOffers.size()) {
+                        ShopOffer selectedOffer = currentOffers.get(visualIndex);
+                        PacketHandler.sendToServer(new ServerBoundTradeButtonClickPacket(selectedOffer.getTradeId()));
+                    }
                 }
-
             }));
             k += TRADE_BUTTON_HEIGHT;
         }

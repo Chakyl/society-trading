@@ -8,30 +8,29 @@ import net.minecraftforge.network.NetworkEvent;
 import java.util.function.Supplier;
 
 public class ServerBoundTradeButtonClickPacket {
-    private final short button;
-    
-    public ServerBoundTradeButtonClickPacket(short button) {
-        this.button = button;
+    private final String tradeId;
+
+    public ServerBoundTradeButtonClickPacket(String tradeId) {
+        this.tradeId = tradeId;
     }
 
     public ServerBoundTradeButtonClickPacket(FriendlyByteBuf buffer) {
-        this(buffer.readShort());
+        this(buffer.readUtf());
     }
 
     public void encode(FriendlyByteBuf buffer) {
-        buffer.writeShort(this.button);
+        buffer.writeUtf(this.tradeId);
     }
 
     public void handle(Supplier<NetworkEvent.Context> context) {
         ServerPlayer player = context.get().getSender();
         if (player != null) {
             if (player.containerMenu instanceof ShopMenu menu && menu.stillValid(player)) {
-                if (menu.clickMenuButton(player, this.button)) {
+                if (menu.clickTradeById(player, this.tradeId)) {
                     menu.broadcastChanges();
                 }
             }
         }
         context.get().setPacketHandled(true);
-
     }
 }

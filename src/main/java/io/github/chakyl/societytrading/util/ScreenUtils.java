@@ -9,11 +9,30 @@ import sereneseasons.api.season.SeasonHelper;
 
 public class ScreenUtils {
     public static void drawWordWrapShadow(GuiGraphics pGuiGraphics, Font pFont, FormattedText pText, int pX, int pY, int pLineWidth, int pColor) {
-        for(FormattedCharSequence formattedcharsequence : pFont.split(pText, pLineWidth)) {
+        for (FormattedCharSequence formattedcharsequence : pFont.split(pText, pLineWidth)) {
             pGuiGraphics.drawString(pFont, formattedcharsequence, pX, pY, pColor, true);
             pY += 9;
         }
     }
+
+    public static int getSeasonOrder(String string) {
+        switch (string) {
+            case "spring", "early_spring", "mid_spring", "late_spring" -> {
+                return 0;
+            }
+            case "summer", "early_summer", "mid_summer", "late_summer" -> {
+                return 1;
+            }
+            case "autumn", "early_autumn", "mid_autumn", "late_autumn" -> {
+                return 2;
+            }
+            case "winter", "early_winter", "mid_winter", "late_winter" -> {
+                return 3;
+            }
+        }
+        return 1;
+    }
+
     public static int getSeasonOrder(Level level) {
         if (level != null) {
             switch (SeasonHelper.getSeasonState(level).getSeason()) {

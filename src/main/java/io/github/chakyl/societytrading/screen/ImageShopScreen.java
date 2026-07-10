@@ -53,7 +53,6 @@ public class ImageShopScreen extends AbstractContainerScreen<ImageShopMenu> {
     private static final int LIMIT_ICON_START_X = 320;
     private static final int LIMIT_ICON_SIZE = 9;
     private static final Component TRADES_LABEL = Component.translatable("gui.society_trading.search_trades");
-    private int shopItem;
     private final TradeOfferButton[] tradeOfferButtons = new TradeOfferButton[NUMBER_OF_OFFER_BUTTONS];
     int scrollOff;
     private boolean isDragging;
@@ -69,10 +68,6 @@ public class ImageShopScreen extends AbstractContainerScreen<ImageShopMenu> {
         PacketHandler.sendToServer(new ServerBoundOpenSelectorMenuPacket(this.menu.getPreviousSelector()));
     }
 
-    private void postButtonClick() {
-        PacketHandler.sendToServer(new ServerBoundTradeButtonClickPacket((short) this.shopItem));
-    }
-
     protected void init() {
         super.init();
         int i = (this.width - this.imageWidth) / 2;
@@ -83,8 +78,12 @@ public class ImageShopScreen extends AbstractContainerScreen<ImageShopMenu> {
         for (int l = 0; l < NUMBER_OF_OFFER_BUTTONS; ++l) {
             this.tradeOfferButtons[l] = this.addRenderableWidget(new TradeOfferButton(i + 8, k, l, (button) -> {
                 if (button instanceof TradeOfferButton) {
-                    this.shopItem = ((TradeOfferButton) button).getIndex() + this.scrollOff;
-                    this.postButtonClick();
+                    int visualIndex = ((ImageShopScreen.TradeOfferButton) button).getIndex() + this.scrollOff;
+                    ShopOffers currentOffers = this.menu.getOffers();
+                    if (visualIndex < currentOffers.size()) {
+                        ShopOffer selectedOffer = currentOffers.get(visualIndex);
+                        PacketHandler.sendToServer(new ServerBoundTradeButtonClickPacket(selectedOffer.getTradeId()));
+                    }
                 }
 
             }));
@@ -239,7 +238,7 @@ public class ImageShopScreen extends AbstractContainerScreen<ImageShopMenu> {
                         pGuiGraphics.drawString(this.font, priceStr, l + TRADE_BUTTON_WIDTH - font.width(priceStr) - priceOffset, j1 + 4, 16777215, true);
                     }
                     //result
-                    int lineLength = 104;
+                    int lineLength = 102;
                     Component itemName = itemstack3.getHoverName();
                     boolean oneLine = this.font.split(itemName, lineLength).size() == 1;
                     ScreenUtils.drawWordWrapShadow(pGuiGraphics, this.font, itemName.plainCopy().withStyle(ChatFormatting.WHITE), l + 4, j1 + (oneLine ? 4 : 0), lineLength, 16777215);
@@ -400,14 +399,10 @@ public class ImageShopScreen extends AbstractContainerScreen<ImageShopMenu> {
                     }
                 }
 
-                if (pMouseX < this.getX() + 20) {
+                if (pMouseX < this.getX() + 104) {
                     ItemStack itemstack = offer.getResult();
                     pGuiGraphics.renderTooltip(ImageShopScreen.this.font, itemstack, pMouseX, pMouseY);
-                } else if (pMouseX > this.getX() + 164 && pMouseX < this.getX() + 180) {
-                    if (!itemstack2.isEmpty()) {
-                        pGuiGraphics.renderTooltip(ImageShopScreen.this.font, itemstack2, pMouseX, pMouseY);
-                    }
-                } else if (pMouseX > this.getX() + 180) {
+                } else if (pMouseX > this.getX() + 104) {
                     if (!rightMostStack.isEmpty()) {
                         pGuiGraphics.renderTooltip(ImageShopScreen.this.font, rightMostStack, pMouseX, pMouseY);
                     } else if (renderPrice) {
