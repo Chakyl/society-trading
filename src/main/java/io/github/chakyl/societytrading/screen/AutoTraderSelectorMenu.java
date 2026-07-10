@@ -6,14 +6,12 @@ import io.github.chakyl.societytrading.data.ShopRegistry;
 import io.github.chakyl.societytrading.registry.ModElements;
 import io.github.chakyl.societytrading.util.ShopData;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.entity.npc.ClientSideMerchant;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.trading.Merchant;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 

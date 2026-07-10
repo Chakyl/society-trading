@@ -1,7 +1,6 @@
 package io.github.chakyl.societytrading.network;
 
 import io.github.chakyl.societytrading.screen.AutoTraderMenu;
-import io.github.chakyl.societytrading.screen.ShopMenu;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkEvent;

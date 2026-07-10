@@ -2,21 +2,15 @@ package io.github.chakyl.societytrading.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import io.github.chakyl.societytrading.data.CustomSelectorRegistry;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
-import net.minecraft.commands.arguments.EntityArgument;
-
-import static io.github.chakyl.societytrading.util.GeneralUtils.openSelectorMenu;
-
-import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import io.github.chakyl.societytrading.data.CustomSelectorRegistry;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.resources.ResourceLocation;
+
+import static io.github.chakyl.societytrading.util.GeneralUtils.openSelectorMenu;
 
 public class OpenSelectorCommand {
     private static final SuggestionProvider<CommandSourceStack> SELECTOR_SUGGESTIONS = (context, builder) -> SharedSuggestionProvider.suggest(

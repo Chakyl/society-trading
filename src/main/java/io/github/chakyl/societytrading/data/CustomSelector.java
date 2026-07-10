@@ -1,7 +1,9 @@
 package io.github.chakyl.societytrading.data;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;

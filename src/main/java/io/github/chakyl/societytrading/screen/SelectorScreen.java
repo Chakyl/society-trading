@@ -5,7 +5,6 @@ import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.data.Shop;
 import io.github.chakyl.societytrading.network.PacketHandler;
 import io.github.chakyl.societytrading.network.ServerBoundOpenShopMenuPacket;
-import io.github.chakyl.societytrading.trading.ShopOffers;
 import io.github.chakyl.societytrading.util.ScreenUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;

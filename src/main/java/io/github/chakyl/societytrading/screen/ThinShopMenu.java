@@ -2,8 +2,6 @@ package io.github.chakyl.societytrading.screen;
 
 import io.github.chakyl.societytrading.registry.ModElements;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.ResultContainer;
-import net.minecraft.world.inventory.Slot;
 
 import java.util.UUID;
 
