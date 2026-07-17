@@ -398,11 +398,12 @@ public class ImageShopScreen extends AbstractContainerScreen<ImageShopMenu> {
                         rightMostStack = ItemStack.EMPTY;
                     }
                 }
-
-                if (pMouseX < this.getX() + 104) {
-                    ItemStack itemstack = offer.getResult();
-                    pGuiGraphics.renderTooltip(ImageShopScreen.this.font, itemstack, pMouseX, pMouseY);
-                } else if (pMouseX > this.getX() + 104) {
+                // I don't like it!!
+//                if (pMouseX < this.getX() + 104) {
+//                    ItemStack itemstack = offer.getResult();
+//                    pGuiGraphics.renderTooltip(ImageShopScreen.this.font, itemstack, pMouseX, pMouseY);
+//                } else
+                if (pMouseX > this.getX() + 104) {
                     if (!rightMostStack.isEmpty()) {
                         pGuiGraphics.renderTooltip(ImageShopScreen.this.font, rightMostStack, pMouseX, pMouseY);
                     } else if (renderPrice) {
