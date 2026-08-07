@@ -2,6 +2,7 @@ package io.github.chakyl.societytrading.blockentity;
 
 import dev.ithundxr.createnumismatics.Numismatics;
 import dev.ithundxr.createnumismatics.content.backend.BankAccount;
+import dev.ithundxr.createnumismatics.registry.NumismaticsDataComponents;
 import dev.ithundxr.createnumismatics.registry.NumismaticsTags;
 import dev.shadowsoffire.placebo.block_entity.TickingBlockEntity;
 import io.github.chakyl.societytrading.SocietyTrading;
@@ -15,7 +16,7 @@ import io.github.chakyl.societytrading.trading.ShopOffer;
 import io.github.chakyl.societytrading.trading.ShopOffers;
 import io.github.chakyl.societytrading.util.ShopData;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
@@ -32,14 +33,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
-import java.util.UUID;
 
 import static io.github.chakyl.societytrading.util.GeneralUtils.canAffordOrNotRelevant;
 
@@ -52,13 +49,7 @@ public class AutoTraderBlockEntity extends BlockEntity implements TickingBlockEn
     private int progress = 0;
     private int TRADING_TIME = 120;
     private ShopOffer selectedOffer;
-    /**
-     * TODO:
-     * - Numismatics card support
-     * - Craft using materials
-     *   - When the craft is done, check if the shop ID of the indexed equals the shop id of the result
-     * - Cache IDs if they don't exist
-     */
+
     private final ItemStackHandler inputInventoryA = new ItemStackHandler(1) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -88,13 +79,8 @@ public class AutoTraderBlockEntity extends BlockEntity implements TickingBlockEn
         }
     };
 
-    private final LazyOptional<ItemStackHandler> inputInventoryAOptional = LazyOptional.of(() -> this.inputInventoryA);
-    private final LazyOptional<ItemStackHandler> inputInventoryBOptional = LazyOptional.of(() -> this.inputInventoryB);
-    private final LazyOptional<ItemStackHandler> cardInventoryOptional = LazyOptional.of(() -> this.cardInventory);
-    private final LazyOptional<ItemStackHandler> outputInventoryOptional = LazyOptional.of(() -> this.outputInventory);
-
     public AutoTraderBlockEntity(BlockPos pos, BlockState state) {
-        super(ModElements.BlockEntities.AUTO_TRADER.get(), pos, state);
+        super(ModElements.BlockEntities.AUTO_TRADER, pos, state);
         this.data = new ContainerData() {
             @Override
             public int get(int pIndex) {
@@ -115,7 +101,6 @@ public class AutoTraderBlockEntity extends BlockEntity implements TickingBlockEn
                     case 2 -> AutoTraderBlockEntity.this.selectedShopIndex = pValue;
                     case 3 -> AutoTraderBlockEntity.this.selectedTradeIndex = pValue;
                 }
-
             }
 
             @Override
@@ -184,7 +169,7 @@ public class AutoTraderBlockEntity extends BlockEntity implements TickingBlockEn
         ItemStack result = this.selectedOffer.getResult();
         int resultCount = result.getCount();
 
-        if (outputSlot.getCount() > 0 && canInsertItemIntoOutputSlot(outputSlot, result) && canInsertAmountIntoOutputSlot(outputSlot, resultCount)) {
+        if (!outputSlot.isEmpty() && canInsertItemIntoOutputSlot(outputSlot, result) && canInsertAmountIntoOutputSlot(outputSlot, resultCount)) {
             outputSlot.setCount(outputSlot.getCount() + resultCount);
         } else {
             this.outputInventory.setStackInSlot(0, this.selectedOffer.getResult().copy());
@@ -201,10 +186,10 @@ public class AutoTraderBlockEntity extends BlockEntity implements TickingBlockEn
     private BankAccount getCardAccount() {
         ItemStack card = this.cardInventory.getStackInSlot(0);
         if (!SocietyTrading.NUMISMATICS_INSTALLED || card.is(Items.AIR)) return null;
-        if (!card.is(NumismaticsTags.AllItemTags.CARDS.tag) || card.getTag() == null) return null;
-        if (card.getTag().contains("AccountID")) {
-            UUID cardUUID = card.getTag().getUUID("AccountID");
-            return Numismatics.BANK.getAccount(cardUUID);
+        if (!card.is(NumismaticsTags.AllItemTags.CARDS.tag)) return null;
+
+        if (card.getComponents().isEmpty() && card.getComponents().has(NumismaticsDataComponents.CARD_ACCOUNT_ID)) {
+            return Numismatics.BANK.getAccount(card.getComponents().get(NumismaticsDataComponents.CARD_ACCOUNT_ID));
         }
         return null;
     }
@@ -235,7 +220,7 @@ public class AutoTraderBlockEntity extends BlockEntity implements TickingBlockEn
     }
 
     private boolean accountHasCash() {
-        return Objects.requireNonNull(getCardAccount()).getBalance()  > 0;
+        return Objects.requireNonNull(getCardAccount()).getBalance() > 0;
     }
 
     private boolean shouldAttemptPurchase() {
@@ -285,7 +270,7 @@ public class AutoTraderBlockEntity extends BlockEntity implements TickingBlockEn
     }
 
     private boolean canInsertItemIntoOutputSlot(ItemStack output, ItemStack result) {
-        return output.isEmpty() || (output.is(result.getItem()) && output.areShareTagsEqual(result));
+        return output.isEmpty() || ItemStack.isSameItemSameComponents(output, result);
     }
 
     private boolean canInsertAmountIntoOutputSlot(ItemStack output, int addedCount) {
@@ -299,46 +284,26 @@ public class AutoTraderBlockEntity extends BlockEntity implements TickingBlockEn
     }
 
     @Override
-    public <T> LazyOptional<T> getCapability(Capability<T> cap, Direction side) {
-        if (cap == ForgeCapabilities.ITEM_HANDLER) {
-            if (side == null) return this.cardInventoryOptional.cast();
-            if (side == Direction.DOWN) return this.outputInventoryOptional.cast();
-            if (side == Direction.UP) return this.inputInventoryAOptional.cast();
-            else return this.inputInventoryBOptional.cast();
-        }
-
-        return super.getCapability(cap, side);
-    }
-
-    @Override
-    public void invalidateCaps() {
-        super.invalidateCaps();
-        this.inputInventoryAOptional.invalidate();
-        this.inputInventoryBOptional.invalidate();
-        this.cardInventoryOptional.invalidate();
-    }
-
-    @Override
     public void setChanged() {
         super.setChanged();
-        if (this.level != null && this.level.isClientSide())
+        if (this.level != null && !this.level.isClientSide())
             this.level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), Block.UPDATE_ALL);
     }
 
-    public LazyOptional<ItemStackHandler> getInputInventoryAOptional() {
-        return this.inputInventoryAOptional;
+    public ItemStackHandler getInputInventoryA() {
+        return inputInventoryA;
     }
 
-    public LazyOptional<ItemStackHandler> getInputInventoryBOptional() {
-        return this.inputInventoryBOptional;
+    public ItemStackHandler getInputInventoryB() {
+        return inputInventoryB;
     }
 
-    public LazyOptional<ItemStackHandler> getCardInventoryOptional() {
-        return this.cardInventoryOptional;
+    public ItemStackHandler getCardInventory() {
+        return cardInventory;
     }
 
-    public LazyOptional<ItemStackHandler> getOutputInventoryOptional() {
-        return this.outputInventoryOptional;
+    public ItemStackHandler getOutputInventory() {
+        return outputInventory;
     }
 
     public void drops() {
@@ -359,18 +324,17 @@ public class AutoTraderBlockEntity extends BlockEntity implements TickingBlockEn
     }
 
     private boolean slotMatches(ItemStack slot, ItemStack recipe) {
-        return slot.is(recipe.getItem()) && slot.areShareTagsEqual(recipe);
+        return ItemStack.isSameItemSameComponents(slot, recipe);
     }
 
-
     @Override
-    public void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
         CompoundTag traderData = new CompoundTag();
-        traderData.put("InputInventoryA", this.inputInventoryA.serializeNBT());
-        traderData.put("InputInventoryB", this.inputInventoryB.serializeNBT());
-        traderData.put("CardInventory", this.cardInventory.serializeNBT());
-        traderData.put("OutputInventory", this.outputInventory.serializeNBT());
+        traderData.put("InputInventoryA", this.inputInventoryA.serializeNBT(registries));
+        traderData.put("InputInventoryB", this.inputInventoryB.serializeNBT(registries));
+        traderData.put("CardInventory", this.cardInventory.serializeNBT(registries));
+        traderData.put("OutputInventory", this.outputInventory.serializeNBT(registries));
         traderData.putInt("Progress", this.progress);
         traderData.putInt("SelectedTradeIndex", this.selectedTradeIndex);
         traderData.putString("SelectedTradeId", this.selectedTradeId);
@@ -380,20 +344,20 @@ public class AutoTraderBlockEntity extends BlockEntity implements TickingBlockEn
     }
 
     @Override
-    public void load(CompoundTag pTag) {
-        super.load(pTag);
+    protected void loadAdditional(CompoundTag pTag, HolderLookup.Provider registries) {
+        super.loadAdditional(pTag, registries);
         CompoundTag traderData = pTag.getCompound(SocietyTrading.MODID);
         if (traderData.contains("InputInventoryA", Tag.TAG_COMPOUND)) {
-            this.inputInventoryA.deserializeNBT(traderData.getCompound("InputInventoryA"));
+            this.inputInventoryA.deserializeNBT(registries, traderData.getCompound("InputInventoryA"));
         }
         if (traderData.contains("InputInventoryB", Tag.TAG_COMPOUND)) {
-            this.inputInventoryB.deserializeNBT(traderData.getCompound("InputInventoryB"));
+            this.inputInventoryB.deserializeNBT(registries, traderData.getCompound("InputInventoryB"));
         }
         if (traderData.contains("CardInventory", Tag.TAG_COMPOUND)) {
-            this.cardInventory.deserializeNBT(traderData.getCompound("CardInventory"));
+            this.cardInventory.deserializeNBT(registries, traderData.getCompound("CardInventory"));
         }
         if (traderData.contains("OutputInventory", Tag.TAG_COMPOUND)) {
-            this.outputInventory.deserializeNBT(traderData.getCompound("OutputInventory"));
+            this.outputInventory.deserializeNBT(registries, traderData.getCompound("OutputInventory"));
         }
         this.progress = traderData.getInt("Progress");
         this.selectedTradeIndex = traderData.getInt("SelectedTradeIndex");
@@ -402,10 +366,8 @@ public class AutoTraderBlockEntity extends BlockEntity implements TickingBlockEn
         this.selectedShopId = traderData.getString("SelectedShopId");
     }
 
-
     @Override
     public Component getDisplayName() {
         return Component.translatable("block.society_trading.auto_trader");
     }
-
 }

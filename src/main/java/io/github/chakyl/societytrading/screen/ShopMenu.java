@@ -10,7 +10,7 @@ import io.github.chakyl.societytrading.data.ShopRegistry;
 import io.github.chakyl.societytrading.network.ClientBoundBalancePacket;
 import io.github.chakyl.societytrading.network.PacketHandler;
 import io.github.chakyl.societytrading.registry.ModElements;
-import io.github.chakyl.societytrading.tradelimits.TradeLimitProvider;
+import io.github.chakyl.societytrading.tradelimits.TradeLimit;
 import io.github.chakyl.societytrading.trading.ShopOffer;
 import io.github.chakyl.societytrading.trading.ShopOffers;
 import io.github.chakyl.societytrading.util.GeneralUtils;
@@ -19,7 +19,7 @@ import io.github.chakyl.societytrading.util.ShopData;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenCustomHashMap;
 import net.minecraft.client.multiplayer.ClientPacketListener;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -63,7 +63,7 @@ public class ShopMenu extends AbstractContainerMenu {
     public ShopMenu(MenuType<?> type, int pContainerId, Inventory pPlayerInventory, String shopID, UUID pTargetUUID, String pPreviousSelector) {
         super(type, pContainerId);
         if (shopID != null) {
-            DynamicHolder<Shop> shop = ShopRegistry.INSTANCE.holder(new ResourceLocation("society_trading:" + shopID));
+            DynamicHolder<Shop> shop = ShopRegistry.INSTANCE.holder(ResourceLocation.parse("society_trading:" + shopID));
             this.shop = shop.get();
             this.trades = ShopData.getFilteredTrades(this.shop.trades(), this.shop.randomSets(), pPlayerInventory.player, pTargetUUID);
         } else {
@@ -114,7 +114,9 @@ public class ShopMenu extends AbstractContainerMenu {
         this.selectedTradeSlot.set(Math.max(syncIndex, 0));
     }
 
-    public String getPreviousSelector() { return this.previousSelector; }
+    public String getPreviousSelector() {
+        return this.previousSelector;
+    }
 
     public ShopOffer getSelectedTrade() {
         return selectedTrade;
@@ -171,25 +173,24 @@ public class ShopMenu extends AbstractContainerMenu {
             this.updateBalance();
         }
         if (offer.getLimit() > 0) {
-            this.player.getCapability(TradeLimitProvider.PLAYER_DATA).ifPresent(data -> {
-                int existingLimit = data.getData(offer.getTradeId());
-                if (existingLimit == 0) {
-                    data.setData(offer.getTradeId(), 1);
-                } else {
-                    data.setData(offer.getTradeId(), 1 + existingLimit);
-                }
-            });
+            TradeLimit tradeLimitsData = this.player.getData(ModElements.Attachments.TRADE_LIMITS.get());
+            int existingLimit = tradeLimitsData.getData(offer.getTradeId());
+            if (existingLimit == 0) {
+                tradeLimitsData.setData(offer.getTradeId(), 1);
+            } else {
+                tradeLimitsData.setData(offer.getTradeId(), 1 + existingLimit);
+            }
         }
 
     }
 
-    private boolean hasItemWithNbt(Inventory pPlayerInventory, Item item, CompoundTag nbt) {
+    private boolean hasItemWithComponents(Inventory pPlayerInventory, Item item, DataComponentPatch components) {
         List<Pair<Container, Runnable>> foundItems = new ArrayList<>();
         IntStream.range(0, pPlayerInventory.getContainerSize()).forEach(slot -> {
             ItemStack stack = pPlayerInventory.getItem(slot);
             if (stack.isEmpty() || stack.isDamaged())
                 return;
-            if (stack.getItem() == item && stack.getTag() != null && stack.getTag().equals(nbt))
+            if (stack.getItem() == item && stack.getComponentsPatch() != null && stack.getComponentsPatch().equals(components))
                 foundItems.add(Pair.of(pPlayerInventory, () -> stack.setCount(0)));
         });
         return !foundItems.isEmpty();
@@ -205,13 +206,15 @@ public class ShopMenu extends AbstractContainerMenu {
             Item item = stack.getItem();
             Integer count = items.get(item);
             if (count != null) {
-                if (offer.getCostA().getTag() != null && item == offer.getCostA().getItem()) {
-                    if (stack.getTag() == null) offerIsExact = false;
-                    else if (!stack.getTag().equals(offer.getCostA().getTag())) offerIsExact = false;
+                if (!offer.getCostA().getComponentsPatch().isEmpty() && item == offer.getCostA().getItem()) {
+                    if (stack.getComponentsPatch().isEmpty()) offerIsExact = false;
+                    else if (!stack.getComponentsPatch().equals(offer.getCostA().getComponentsPatch()))
+                        offerIsExact = false;
                 }
-                if (offer.getCostB().getTag() != null && item == offer.getCostB().getItem()) {
-                    if (stack.getTag() == null) offerIsExact = false;
-                    else if (!stack.getTag().equals(offer.getCostB().getTag())) offerIsExact = false;
+                if (!offer.getCostB().getComponentsPatch().isEmpty() && item == offer.getCostB().getItem()) {
+                    if (stack.getComponentsPatch().isEmpty()) offerIsExact = false;
+                    else if (!stack.getComponentsPatch().equals(offer.getCostB().getComponentsPatch()))
+                        offerIsExact = false;
                 }
                 if (offerIsExact) {
                     if (stack.getCount() < count) {
@@ -253,8 +256,8 @@ public class ShopMenu extends AbstractContainerMenu {
         int count = counts.getOrDefault(item, 0);
         count -= materials.getOrDefault(item, 0);
         if (count > 0) {
-            if (stack.getTag() != null) {
-                if (!hasItemWithNbt(this.player.getInventory(), item, stack.getTag())) return null;
+            if (!stack.getComponentsPatch().isEmpty()) {
+                if (!hasItemWithComponents(this.player.getInventory(), item, stack.getComponentsPatch())) return null;
             }
             if (count >= remaining) {
                 materials.merge(item, remaining, Integer::sum);
@@ -381,7 +384,7 @@ public class ShopMenu extends AbstractContainerMenu {
                 account = Numismatics.BANK.getAccount(cardUUID);
             } else return null;
         } else {
-            Numismatics.BANK.getAccount(this.player.getUUID());
+            account = Numismatics.BANK.getAccount(this.player.getUUID());
         }
         if (account == null || !account.isAuthorized(this.player.getUUID())) return null;
         return account;

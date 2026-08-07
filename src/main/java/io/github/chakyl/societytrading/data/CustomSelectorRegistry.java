@@ -11,6 +11,8 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import java.util.HashMap;
 import java.util.Map;
 
+import static io.github.chakyl.societytrading.SocietyTrading.loc;
+
 public class CustomSelectorRegistry extends DynamicRegistry<CustomSelector> {
 
     public static final CustomSelectorRegistry INSTANCE = new CustomSelectorRegistry();
@@ -23,18 +25,18 @@ public class CustomSelectorRegistry extends DynamicRegistry<CustomSelector> {
 
     @Override
     protected void registerBuiltinCodecs() {
-        this.registerDefaultCodec(new ResourceLocation(SocietyTrading.MODID, "selectors"), CustomSelector.CODEC);
+        this.registerDefaultCodec(loc("selectors"), CustomSelector.CODEC);
     }
 
     @Override
-    protected void beginReload() {
-        super.beginReload();
+    protected void beginReload(ReloadType type) {
+        super.beginReload(type);
         this.selectorsByID = new HashMap<>();
     }
 
     @Override
-    protected void onReload() {
-        super.onReload();
+    protected void onReload(ReloadType type) {
+        super.onReload(type);
         this.selectorsByID = ImmutableMap.copyOf(this.selectorsByID);
     }
 

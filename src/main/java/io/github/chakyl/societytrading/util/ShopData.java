@@ -24,10 +24,10 @@ import java.util.*;
 public class ShopData {
     public static Collection<Shop> getCustomSelectorShops(String selectorId) {
         List<Shop> newShops = new ArrayList<>();
-        DynamicHolder<CustomSelector> selector = CustomSelectorRegistry.INSTANCE.holder(new ResourceLocation("society_trading:" + selectorId));
+        DynamicHolder<CustomSelector> selector = CustomSelectorRegistry.INSTANCE.holder(ResourceLocation.parse("society_trading:" + selectorId));
         if (selector.isBound()) {
             for (String shopId : selector.get().shopIds()) {
-                DynamicHolder<Shop> shop = ShopRegistry.INSTANCE.holder(new ResourceLocation("society_trading:" + shopId));
+                DynamicHolder<Shop> shop = ShopRegistry.INSTANCE.holder(ResourceLocation.parse("society_trading:" + selectorId));
                 if (shop.isBound()) {
                     newShops.add(shop.get());
                 }
@@ -46,14 +46,15 @@ public class ShopData {
                     flag = false;
                 }
             }
-            if (SocietyTrading.KUBEJS_INSTALLED) {
-                if (!shop.stageRequired().isEmpty() && !Stages.get(player).has(shop.stageRequired())) {
-                    flag = false;
-                }
-                if (!shop.stageOverride().isEmpty() && Stages.get(player).has(shop.stageRequired())) {
-                    flag = true;
-                }
-            }
+            // TODO: Kubejs Stages
+//            if (SocietyTrading.KUBEJS_INSTALLED) {
+//                if (!shop.stageRequired().isEmpty() && !Stages.get(player).has(shop.stageRequired())) {
+//                    flag = false;
+//                }
+//                if (!shop.stageOverride().isEmpty() && Stages.get(player).has(shop.stageRequired())) {
+//                    flag = true;
+//                }
+//            }
 
             if (flag) {
                 newShops.add(shop);

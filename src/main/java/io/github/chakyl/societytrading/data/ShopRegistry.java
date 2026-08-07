@@ -15,6 +15,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static io.github.chakyl.societytrading.SocietyTrading.loc;
+
 public class ShopRegistry extends DynamicRegistry<Shop> {
 
     public static final ShopRegistry INSTANCE = new ShopRegistry();
@@ -28,19 +30,19 @@ public class ShopRegistry extends DynamicRegistry<Shop> {
 
     @Override
     protected void registerBuiltinCodecs() {
-        this.registerDefaultCodec(new ResourceLocation(SocietyTrading.MODID, "shops"), Shop.CODEC);
+        this.registerDefaultCodec(loc("shops"), Shop.CODEC);
     }
 
     @Override
-    protected void beginReload() {
-        super.beginReload();
+    protected void beginReload(ReloadType type) {
+        super.beginReload(type);
         this.shopsByID = new HashMap<>();
         this.registeredTradeIds = new HashSet<>();
     }
 
     @Override
-    protected void onReload() {
-        super.onReload();
+    protected void onReload(ReloadType type) {
+        super.onReload(type);
         this.shopsByID = ImmutableMap.copyOf(this.shopsByID);
     }
 

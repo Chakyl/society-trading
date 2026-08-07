@@ -20,13 +20,14 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static io.github.chakyl.societytrading.SocietyTrading.loc;
 import static io.github.chakyl.societytrading.util.ShopData.formatPrice;
 
 @OnlyIn(Dist.CLIENT)
@@ -34,7 +35,7 @@ public class ImageShopScreen extends AbstractContainerScreen<ImageShopMenu> {
     /**
      * The GUI texture for the villager merchant GUI.
      */
-    private static final ResourceLocation GUI_LOCATION = new ResourceLocation(SocietyTrading.MODID, "textures/gui/image_shop.png");
+    private static final ResourceLocation GUI_LOCATION = loc("textures/gui/image_shop.png");
     private static final int TEXTURE_WIDTH = 512;
     private static final int TEXTURE_HEIGHT = 256;
     private static final int SELL_ITEM_1_X = 5;
@@ -170,7 +171,7 @@ public class ImageShopScreen extends AbstractContainerScreen<ImageShopMenu> {
         pGuiGraphics.blit(GUI_LOCATION, i, j, 0, 0.0F, 0.0F, this.imageWidth, this.imageHeight, TEXTURE_WIDTH, TEXTURE_HEIGHT);
         int selectedTrade = menu.selectedTradeSlot.get();
         if (hasSelectedTrade()) {
-            pGuiGraphics.blit(new ResourceLocation(this.menu.getOffers().get(selectedTrade).getImage() + ".png"), i + 142, j + 18, 0, 0.0F, 0.0F, 154, 110, 154, 110);
+            pGuiGraphics.blit(ResourceLocation.parse(this.menu.getOffers().get(selectedTrade).getImage() + ".png"), i + 142, j + 18, 0, 0.0F, 0.0F, 154, 110, 154, 110);
         }
     }
 
@@ -200,7 +201,7 @@ public class ImageShopScreen extends AbstractContainerScreen<ImageShopMenu> {
      * @param pPartialTick the partial tick time.
      */
     public void render(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        this.renderBackground(pGuiGraphics);
+        this.renderBg(pGuiGraphics, pPartialTick, pMouseX, pMouseY);
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         ShopOffers shopOffers = this.menu.getOffers();
         int i = (this.width - this.imageWidth) / 2;

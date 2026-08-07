@@ -34,7 +34,7 @@ public class OpenShopCommand {
                                 .executes(context -> {
                                     ServerPlayer targetPlayer = EntityArgument.getPlayer(context, "player");
                                     String commandShopId = StringArgumentType.getString(context, "shop_id");
-                                    DynamicHolder<Shop> shop = ShopRegistry.INSTANCE.holder(new ResourceLocation("society_trading:" + commandShopId));
+                                    DynamicHolder<Shop> shop = ShopRegistry.INSTANCE.holder(ResourceLocation.parse("society_trading:" + commandShopId));
 
                                     if (shop.isBound()) {
                                         UUID randomUUID = UUID.randomUUID();

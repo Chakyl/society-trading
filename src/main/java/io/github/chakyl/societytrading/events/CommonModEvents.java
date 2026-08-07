@@ -1,23 +1,21 @@
 package io.github.chakyl.societytrading.events;
 
 import io.github.chakyl.societytrading.SocietyTrading;
-import io.github.chakyl.societytrading.network.PacketHandler;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.fml.ModList;
 
-@Mod.EventBusSubscriber(modid = SocietyTrading.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = SocietyTrading.MODID)
 public class CommonModEvents {
     @SubscribeEvent
     public static void commonSetup(FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
-            PacketHandler.register();
+            SocietyTrading.CONTROLLABLE_INSTALLED = ModList.get().isLoaded("controllable");
+            SocietyTrading.SERENE_SEASONS_INSTALLED = ModList.get().isLoaded("sereneseasons");
+            SocietyTrading.KUBEJS_INSTALLED = ModList.get().isLoaded("kubejs");
+            SocietyTrading.NUMISMATICS_INSTALLED = ModList.get().isLoaded("numismatics");
+            SocietyTrading.NUMISMATICS_UTILS_INSTALLED = ModList.get().isLoaded("numismaticsutils");
         });
-        event.enqueueWork(() -> SocietyTrading.CONTROLLABLE_INSTALLED = ModList.get().isLoaded("controllable"));
-        event.enqueueWork(() -> SocietyTrading.SERENE_SEASONS_INSTALLED = ModList.get().isLoaded("sereneseasons"));
-        event.enqueueWork(() -> SocietyTrading.KUBEJS_INSTALLED = ModList.get().isLoaded("kubejs"));
-        event.enqueueWork(() -> SocietyTrading.NUMISMATICS_INSTALLED = ModList.get().isLoaded("numismatics"));
-        event.enqueueWork(() -> SocietyTrading.NUMISMATICS_UTILS_INSTALLED = ModList.get().isLoaded("numismatics_utils"));
     }
 }

@@ -21,7 +21,8 @@
     }
   },
   "result": {
-    "item": "society_trading:auto_trader"
+    "count": 3,
+    "id": "society_trading:auto_trader"
   },
   "show_notification": true
 }

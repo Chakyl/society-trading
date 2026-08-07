@@ -1,11 +1,13 @@
 package io.github.chakyl.societytrading.tradelimits;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.neoforged.neoforge.common.util.INBTSerializable;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class TradeLimitCapability {
+public class TradeLimit implements INBTSerializable<CompoundTag> {
     private final Map<String, Integer> data = new HashMap<>();
 
     public void setData(String key, int value) {
@@ -23,13 +25,16 @@ public class TradeLimitCapability {
     public void clear() {
         this.data.clear();
     }
-    public CompoundTag saveNBT() {
+
+    @Override
+    public CompoundTag serializeNBT(HolderLookup.Provider provider) {
         CompoundTag nbt = new CompoundTag();
         data.forEach(nbt::putInt);
         return nbt;
     }
 
-    public void loadNBT(CompoundTag nbt) {
+    @Override
+    public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
         data.clear();
         for (String key : nbt.getAllKeys()) {
             data.put(key, nbt.getInt(key));

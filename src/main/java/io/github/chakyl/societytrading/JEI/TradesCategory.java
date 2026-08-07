@@ -25,12 +25,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static io.github.chakyl.societytrading.SocietyTrading.loc;
 import static io.github.chakyl.societytrading.util.ShopData.formatPrice;
 
 public class TradesCategory implements IRecipeCategory<TradeRecipe> {
 
     public static final RecipeType<TradeRecipe> TYPE = RecipeType.create(SocietyTrading.MODID, "trade", TradeRecipe.class);
-    public static final ResourceLocation TRADE_TEXTURE = new ResourceLocation(SocietyTrading.MODID, "textures/jei/trade.png");
+    public static final ResourceLocation TRADE_TEXTURE = loc("textures/jei/trade.png");
     private static final int INDICATOR_ICON_SIZE = 8;
 
     private final IDrawable background;

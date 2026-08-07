@@ -20,31 +20,43 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+
+import com.google.common.base.Preconditions;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.resources.ResourceLocation;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Stores all of the information representing a Custom Shop Selector.
  *
- * @param selectorId           The unique ID of the Selector
- * @param name                 The display name of Selector
- * @param shopIds              List of
+ * @param selectorId The unique ID of the Selector
+ * @param name       The display name of Selector
+ * @param shopIds    List of shop IDs associated with this selector
  */
-public record CustomSelector(String selectorId, MutableComponent name,  List<String> shopIds) implements CodecProvider<CustomSelector> {
+public record CustomSelector(String selectorId, Component name, List<String> shopIds) implements AbstractCustomSelector {
 
-    public static final Codec<CustomSelector> CODEC = new CustomSelectorCodec();
+    public static final Codec<CustomSelector> CODEC = RecordCodecBuilder.create(inst -> inst
+            .group(
+                    Codec.STRING.fieldOf("selector_id").forGetter(CustomSelector::selectorId),
+                    ComponentSerialization.CODEC.fieldOf("name").forGetter(CustomSelector::name),
+                    Codec.STRING.listOf().fieldOf("shop_ids").forGetter(CustomSelector::shopIds)
+            )
+            .apply(inst, CustomSelector::new));
+
     public static List<String> registeredIds = new ArrayList<>();
 
     public CustomSelector(CustomSelector other) {
         this(other.selectorId, other.name, other.shopIds);
     }
 
-    public int getColor() {
-        return this.name.getStyle().getColor().getValue();
-    }
-
-
     public CustomSelector validate(ResourceLocation key) {
         Preconditions.checkNotNull(this.selectorId, "Invalid selector ID!");
         Preconditions.checkNotNull(this.name, "Invalid selector name!");
-
         return this;
     }
 
@@ -52,37 +64,4 @@ public record CustomSelector(String selectorId, MutableComponent name,  List<Str
     public Codec<? extends CustomSelector> getCodec() {
         return CODEC;
     }
-
-    public static class CustomSelectorCodec implements Codec<CustomSelector> {
-
-        @Override
-        public <T> DataResult<T> encode(CustomSelector input, DynamicOps<T> ops, T prefix) {
-            JsonObject obj = new JsonObject();
-            obj.addProperty("selector_id", input.selectorId);
-            obj.addProperty("name", ((TranslatableContents) input.name.getContents()).getKey());
-            JsonArray shopIds = new JsonArray();
-            obj.add("shop_ids", shopIds);
-            for (String season : input.shopIds) {
-                shopIds.add(season.replace("\"", ""));
-            }
-            return DataResult.success(JsonOps.INSTANCE.convertTo(ops, obj));
-        }
-
-        @Override
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        public <T> DataResult<Pair<CustomSelector, T>> decode(DynamicOps<T> ops, T input) {
-            JsonObject obj = ops.convertTo(JsonOps.INSTANCE, input).getAsJsonObject();
-            String shopId = GsonHelper.getAsString(obj, "selector_id");
-            MutableComponent name = Component.translatable(GsonHelper.getAsString(obj, "name"));
-            List<String> shopIds = new ArrayList<>();
-            if (obj.has("shop_ids")) {
-                for (JsonElement json : GsonHelper.getAsJsonArray(obj, "shop_ids")) {
-                    shopIds.add(String.valueOf(json).replace("\"", ""));
-                }
-            }
-            return DataResult.success(Pair.of(new CustomSelector(shopId, name, shopIds), input));
-        }
-
-    }
-
 }

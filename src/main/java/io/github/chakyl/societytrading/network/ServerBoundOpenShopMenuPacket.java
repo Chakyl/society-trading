@@ -2,20 +2,39 @@ package io.github.chakyl.societytrading.network;
 
 
 import dev.shadowsoffire.placebo.reload.DynamicHolder;
+import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.data.Shop;
 import io.github.chakyl.societytrading.data.ShopRegistry;
 import io.github.chakyl.societytrading.screen.SelectorMenu;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.UUID;
-import java.util.function.Supplier;
 
+import static io.github.chakyl.societytrading.SocietyTrading.loc;
 import static io.github.chakyl.societytrading.util.GeneralUtils.openShopMenu;
 
-public class ServerBoundOpenShopMenuPacket {
+public class ServerBoundOpenShopMenuPacket implements CustomPacketPayload {
+    public static final Type<ServerBoundOpenShopMenuPacket> TYPE = new Type<>(loc("server_bound_open_shop_menu"));
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, ServerBoundOpenShopMenuPacket> STREAM_CODEC = StreamCodec.of(
+            (buf, packet) -> {
+                ByteBufCodecs.STRING_UTF8.encode(buf, packet.shopID);
+                buf.writeUUID(packet.entityUUID != null ? packet.entityUUID : UUID.randomUUID());
+                ByteBufCodecs.STRING_UTF8.encode(buf, packet.selectorID);
+            },
+            buf -> new ServerBoundOpenShopMenuPacket(
+                    ByteBufCodecs.STRING_UTF8.decode(buf),
+                    buf.readUUID(),
+                    ByteBufCodecs.STRING_UTF8.decode(buf)
+            )
+    );
+
     private final String shopID;
     private final String selectorID;
     private final UUID entityUUID;
@@ -26,25 +45,25 @@ public class ServerBoundOpenShopMenuPacket {
         this.selectorID = selectorID;
     }
 
-    public ServerBoundOpenShopMenuPacket(FriendlyByteBuf buffer) {
-        this(buffer.readUtf(), buffer.readUUID(), buffer.readUtf());
+    public ServerBoundOpenShopMenuPacket(RegistryFriendlyByteBuf buffer) {
+        this.shopID = buffer.readUtf();
+        this.entityUUID = buffer.readUUID();
+        this.selectorID = buffer.readUtf();
     }
 
-    public void encode(FriendlyByteBuf buffer) {
-        buffer.writeUtf(this.shopID);
-        if (this.entityUUID != null) buffer.writeUUID(this.entityUUID);
-        else buffer.writeUUID(UUID.randomUUID());
-        buffer.writeUtf(this.selectorID);
+    @Override
+    public Type<ServerBoundOpenShopMenuPacket> type() {
+        return TYPE;
     }
 
-    public void handle(Supplier<NetworkEvent.Context> context) {
-        ServerPlayer player = context.get().getSender();
-        if (player != null) {
-            if (player.containerMenu instanceof SelectorMenu menu && menu.stillValid(player)) {
-                DynamicHolder<Shop> shop = ShopRegistry.INSTANCE.holder(new ResourceLocation("society_trading:" + shopID));
-                openShopMenu(shop.get(), player, this.shopID, this.entityUUID, this.selectorID);
+    public static void handle(ServerBoundOpenShopMenuPacket packet, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer player) {
+                if (player.containerMenu instanceof SelectorMenu menu && menu.stillValid(player)) {
+                    DynamicHolder<Shop> shop = ShopRegistry.INSTANCE.holder(ResourceLocation.fromNamespaceAndPath("society_trading", packet.shopID));
+                    openShopMenu(shop.get(), player, packet.shopID, packet.entityUUID, packet.selectorID);
+                }
             }
-        }
-        context.get().setPacketHandled(true);
+        });
     }
 }

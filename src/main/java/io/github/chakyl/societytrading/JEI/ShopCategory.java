@@ -19,10 +19,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+import static io.github.chakyl.societytrading.SocietyTrading.loc;
+
 public class ShopCategory implements IRecipeCategory<ShopRecipe> {
 
     public static final RecipeType<ShopRecipe> TYPE = RecipeType.create(SocietyTrading.MODID, "shop", ShopRecipe.class);
-    public static final ResourceLocation TRADE_TEXTURE = new ResourceLocation(SocietyTrading.MODID, "textures/jei/shop.png");
+    public static final ResourceLocation TRADE_TEXTURE = loc("textures/jei/shop.png");
 
     private final IDrawable background;
     private final IDrawable icon;
@@ -64,7 +66,7 @@ public class ShopCategory implements IRecipeCategory<ShopRecipe> {
         IRecipeCategory.super.draw(recipe, recipeSlotsView, guiGraphics, mouseX, mouseY);
         guiGraphics.drawString(Minecraft.getInstance().font, Language.getInstance().getVisualOrder(recipe.shopName), 19, 4, 4210752, false);
         guiGraphics.drawWordWrap(Minecraft.getInstance().font, FormattedText.of(Component.translatable("shop.society_trading." + recipe.shopId + ".description").getString()), 70, 17, 77, 4210752);
-        guiGraphics.blit(new ResourceLocation(recipe.texture + ".png"), 3, 17, 0, 0.0F, 0.0F, 64, 64, 64, 64);
+        guiGraphics.blit(ResourceLocation.parse(recipe.texture + ".png"), 3, 17, 0, 0.0F, 0.0F, 64, 64, 64, 64);
 
     }
 

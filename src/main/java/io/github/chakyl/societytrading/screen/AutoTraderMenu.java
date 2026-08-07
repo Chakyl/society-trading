@@ -21,8 +21,9 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.items.SlotItemHandler;
+import net.neoforged.neoforge.items.SlotItemHandler;
+
+import java.util.List;
 
 public class AutoTraderMenu extends AbstractContainerMenu {
     public final AutoTraderBlockEntity blockEntity;
@@ -37,38 +38,41 @@ public class AutoTraderMenu extends AbstractContainerMenu {
     private long lastSoundTime;
     private final Player player;
 
+
     public AutoTraderMenu(int pContainerId, Inventory inv, FriendlyByteBuf extraData) {
         this(pContainerId, inv, inv.player.level().getBlockEntity(extraData.readBlockPos()), new SimpleContainerData(4));
     }
 
     public AutoTraderMenu(int pContainerId, Inventory inv, BlockEntity entity, ContainerData data) {
         super(ModElements.Menus.AUTO_TRADER_MENU.get(), pContainerId);
-        checkContainerSize(inv, 2);
-        blockEntity = ((AutoTraderBlockEntity) entity);
+        checkContainerSize(inv, 4);
+        this.blockEntity = ((AutoTraderBlockEntity) entity);
         this.level = inv.player.level();
         this.data = data;
         addDataSlots(data);
 
         addPlayerInventory(inv);
         addPlayerHotbar(inv);
-        this.blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.UP).ifPresent(iItemHandler -> {
-            this.addSlot(new SlotItemHandler(iItemHandler, 0, 209, 18));
-        });
-        this.blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.SOUTH).ifPresent(iItemHandler -> {
-            this.addSlot(new SlotItemHandler(iItemHandler, 0, 231, 18));
-        });
-        this.blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.DOWN).ifPresent(iItemHandler -> {
-            this.addSlot(new SlotItemHandler(iItemHandler, 0, 220, 64));
-        });
-        this.blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, null).ifPresent(iItemHandler -> {
-            this.addSlot(new SlotItemHandler(iItemHandler, 0, 261, 18));
-        });
-        String shopID = ShopData.getAutoTraderShops(ShopRegistry.INSTANCE.getValues()).get(this.data.get(2)).shopID();
-        if (shopID != null) {
-            DynamicHolder<Shop> shop = ShopRegistry.INSTANCE.holder(new ResourceLocation("society_trading:" + shopID));
-            this.shop = shop.get();
-            this.trades = ShopData.getAutoTraderTrades(this.shop.trades());
-            this.selectedTrade = getSelectedTrade();
+
+        this.addSlot(new SlotItemHandler(this.blockEntity.getInputInventoryA(), 0, 209, 18));
+        this.addSlot(new SlotItemHandler(this.blockEntity.getInputInventoryB(), 0, 231, 18));
+        this.addSlot(new SlotItemHandler(this.blockEntity.getOutputInventory(), 0, 220, 64));
+        this.addSlot(new SlotItemHandler(this.blockEntity.getCardInventory(), 0, 261, 18));
+        int shopIndex = this.data.get(2);
+        List<Shop> autoTraderShops = ShopData.getAutoTraderShops(ShopRegistry.INSTANCE.getValues());
+
+        if (shopIndex >= 0 && shopIndex < autoTraderShops.size()) {
+            String shopID = autoTraderShops.get(shopIndex).shopID();
+            if (shopID != null && !shopID.isEmpty()) {
+                DynamicHolder<Shop> shopHolder = ShopRegistry.INSTANCE.holder(ResourceLocation.parse("society_trading:" + shopID));
+                this.shop = shopHolder.get();
+                this.trades = ShopData.getAutoTraderTrades(this.shop.trades());
+                this.selectedTrade = getSelectedTrade();
+            } else {
+                this.shop = null;
+                this.trades = null;
+                this.selectedTrade = null;
+            }
         } else {
             this.shop = null;
             this.trades = null;
@@ -221,7 +225,7 @@ public class AutoTraderMenu extends AbstractContainerMenu {
     @Override
     public boolean stillValid(Player pPlayer) {
         return stillValid(ContainerLevelAccess.create(level, blockEntity.getBlockPos()),
-                pPlayer, ModElements.Blocks.AUTO_TRADER.get());
+                pPlayer, ModElements.Blocks.AUTO_TRADER.value());
     }
 
     public boolean costASlotEmpty() {

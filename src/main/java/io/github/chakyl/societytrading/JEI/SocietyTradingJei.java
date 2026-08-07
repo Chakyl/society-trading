@@ -13,11 +13,12 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.github.chakyl.societytrading.SocietyTrading.loc;
+
 @JeiPlugin
 public class SocietyTradingJei implements IModPlugin {
 
-    public static final ResourceLocation UID = new ResourceLocation(SocietyTrading.MODID, "plugin");
-
+    public static final ResourceLocation UID = loc("plugin");
 
     @Override
     public void registerCategories(IRecipeCategoryRegistration reg) {

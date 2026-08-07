@@ -15,19 +15,21 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+
+import static io.github.chakyl.societytrading.SocietyTrading.loc;
 
 @OnlyIn(Dist.CLIENT)
 public class SelectorScreen extends AbstractContainerScreen<SelectorMenu> {
     /**
      * The GUI texture for the villager merchant GUI.
      */
-    private static final ResourceLocation GUI_LOCATION = new ResourceLocation(SocietyTrading.MODID, "textures/gui/selector.png");
+    private static final ResourceLocation GUI_LOCATION = loc("textures/gui/selector.png");
     private static final int TEXTURE_WIDTH = 512;
     private static final int TEXTURE_HEIGHT = 256;
     private static final int LABEL_Y = 6;
@@ -121,7 +123,7 @@ public class SelectorScreen extends AbstractContainerScreen<SelectorMenu> {
      * @param pPartialTick the partial tick time.
      */
     public void render(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        this.renderBackground(pGuiGraphics);
+        this.renderBg(pGuiGraphics, pPartialTick, pMouseX, pMouseY);
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         Collection<Shop> shops = this.menu.getShops();
         if (shops != null && !shops.isEmpty()) {
@@ -174,20 +176,12 @@ public class SelectorScreen extends AbstractContainerScreen<SelectorMenu> {
         return pNumOffers > NUMBER_OF_SHOP_BUTTONS;
     }
 
-    /**
-     * Called when the mouse wheel is scrolled within the GUI element.
-     * <p>
-     *
-     * @param pMouseX the X coordinate of the mouse.
-     * @param pMouseY the Y coordinate of the mouse.
-     * @param pDelta  the scrolling delta.
-     * @return {@code true} if the event is consumed, {@code false} otherwise.
-     */
-    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
+    @Override
+    public boolean mouseScrolled(double pMouseX, double pMouseY, double pScrollX, double pScrollY) {
         int i = this.menu.getShops().size();
         if (this.canScroll(i)) {
             int j = i - NUMBER_OF_SHOP_BUTTONS;
-            this.scrollOff = Mth.clamp((int) ((double) this.scrollOff - pDelta), 0, j);
+            this.scrollOff = Mth.clamp((int) ((double) this.scrollOff - pScrollY), 0, j);
         }
 
         return true;

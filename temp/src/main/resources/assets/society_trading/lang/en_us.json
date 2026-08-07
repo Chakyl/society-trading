@@ -1,0 +1,13 @@
+{
+  "itemGroup.society_trading": "Example Mod Tab",
+  "block.society_trading.example_block": "Example Block",
+  "item.society_trading.example_item": "Example Item",
+
+  "society_trading.configuration.title": "Society Trading Configs",
+  "society_trading.configuration.section.society_trading.common.toml": "Society Trading Configs",
+  "society_trading.configuration.section.society_trading.common.toml.title": "Society Trading Configs",
+  "society_trading.configuration.items": "Item List",
+  "society_trading.configuration.logDirtBlock": "Log Dirt Block",
+  "society_trading.configuration.magicNumberIntroduction": "Magic Number Text",
+  "society_trading.configuration.magicNumber": "Magic Number"
+}

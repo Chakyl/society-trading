@@ -19,12 +19,13 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.github.chakyl.societytrading.SocietyTrading.loc;
 import static io.github.chakyl.societytrading.util.ShopData.formatPrice;
 
 @OnlyIn(Dist.CLIENT)
@@ -32,7 +33,7 @@ public class AutoTraderScreen extends AbstractContainerScreen<AutoTraderMenu> {
     /**
      * The GUI texture for the villager merchant GUI.
      */
-    private static final ResourceLocation GUI_LOCATION = new ResourceLocation(SocietyTrading.MODID, "textures/gui/auto_trader.png");
+    private static final ResourceLocation GUI_LOCATION = loc("textures/gui/auto_trader.png");
     private static final int TEXTURE_WIDTH = 512;
     private static final int TEXTURE_HEIGHT = 256;
     private static final int SELL_ITEM_1_X = 5;
@@ -92,7 +93,7 @@ public class AutoTraderScreen extends AbstractContainerScreen<AutoTraderMenu> {
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
         pGuiGraphics.blit(GUI_LOCATION, i, j, 0, 0.0F, 0.0F, this.imageWidth, this.imageHeight, TEXTURE_WIDTH, TEXTURE_HEIGHT);
-        pGuiGraphics.blit(new ResourceLocation(this.menu.getTexture() + ".png"), i + 6, j + 18, 0, 0.0F, 0.0F, 64, 64, 64, 64);
+        pGuiGraphics.blit(ResourceLocation.parse(this.menu.getTexture() + ".png"), i + 6, j + 18, 0, 0.0F, 0.0F, 64, 64, 64, 64);
 
         renderProgressArrow(pGuiGraphics, i, j);
     }
@@ -136,7 +137,7 @@ public class AutoTraderScreen extends AbstractContainerScreen<AutoTraderMenu> {
      * @param pPartialTick the partial tick time.
      */
     public void render(GuiGraphics pGuiGraphics, int pMouseX, int pMouseY, float pPartialTick) {
-        this.renderBackground(pGuiGraphics);
+        this.renderBg(pGuiGraphics, pPartialTick, pMouseX, pMouseY);
         super.render(pGuiGraphics, pMouseX, pMouseY, pPartialTick);
         ShopOffers shopOffers = this.menu.getOffers();
         this.menu.syncShopData();
@@ -229,20 +230,12 @@ public class AutoTraderScreen extends AbstractContainerScreen<AutoTraderMenu> {
         return pNumOffers > NUMBER_OF_OFFER_BUTTONS;
     }
 
-    /**
-     * Called when the mouse wheel is scrolled within the GUI element.
-     * <p>
-     *
-     * @param pMouseX the X coordinate of the mouse.
-     * @param pMouseY the Y coordinate of the mouse.
-     * @param pDelta  the scrolling delta.
-     * @return {@code true} if the event is consumed, {@code false} otherwise.
-     */
-    public boolean mouseScrolled(double pMouseX, double pMouseY, double pDelta) {
+    @Override
+    public boolean mouseScrolled(double pMouseX, double pMouseY, double pScrollX, double pScrollY) {
         int i = this.menu.getOffers().size();
         if (this.canScroll(i)) {
             int j = i - NUMBER_OF_OFFER_BUTTONS;
-            this.scrollOff = Mth.clamp((int) ((double) this.scrollOff - pDelta), 0, j);
+            this.scrollOff = Mth.clamp((int) ((double) this.scrollOff - pScrollY), 0, j);
         }
 
         return true;

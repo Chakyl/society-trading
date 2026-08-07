@@ -102,17 +102,18 @@ public class ShopOffer {
     }
 
     public boolean playerCanSee(Player player) {
-        if (player != null && SocietyTrading.KUBEJS_INSTALLED) {
-            if (!this.stageOverride.isEmpty() && Stages.get(player).has(this.stageOverride)) {
-                return true;
-            }
-            if (!this.stageRemoved.isEmpty() && Stages.get(player).has(this.stageRemoved)) {
-                return false;
-            }
-            if (!this.stageRequired.isEmpty() && !Stages.get(player).has(this.stageRequired)) {
-                return false;
-            }
-        }
+        // TODO: Kubejs STages
+//        if (player != null && SocietyTrading.KUBEJS_INSTALLED) {
+//            if (!this.stageOverride.isEmpty() && Stages.get(player).has(this.stageOverride)) {
+//                return true;
+//            }
+//            if (!this.stageRemoved.isEmpty() && Stages.get(player).has(this.stageRemoved)) {
+//                return false;
+//            }
+//            if (!this.stageRequired.isEmpty() && !Stages.get(player).has(this.stageRequired)) {
+//                return false;
+//            }
+//        }
         if (player != null && SocietyTrading.SERENE_SEASONS_INSTALLED) {
             if (!this.seasonsRequired.isEmpty() && !this.seasonsRequired.contains(SeasonHelper.getSeasonState(player.level()).getSubSeason().getSerializedName())) {
                 return false;
@@ -133,8 +134,7 @@ public class ShopOffer {
             if (itemstack.getItem().isDamageable(itemstack)) {
                 itemstack.setDamageValue(itemstack.getDamageValue());
             }
-
-            return ItemStack.isSameItem(itemstack, pCost) && (!pCost.hasTag() || itemstack.hasTag() && NbtUtils.compareNbt(pCost.getTag(), itemstack.getTag(), false));
+            return ItemStack.isSameItemSameComponents(itemstack, pCost);
         }
     }
 

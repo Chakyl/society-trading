@@ -1,13 +1,12 @@
 package io.github.chakyl.societytrading.block;
 
+import com.mojang.serialization.MapCodec;
 import dev.shadowsoffire.placebo.block_entity.TickingEntityBlock;
 import io.github.chakyl.societytrading.blockentity.AutoTraderBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
@@ -18,7 +17,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.network.NetworkHooks;
 
 public class AutoTraderBlock extends HorizontalDirectionalBlock implements TickingEntityBlock {
     public static final BooleanProperty WORKING = BooleanProperty.create("working");
@@ -55,15 +53,22 @@ public class AutoTraderBlock extends HorizontalDirectionalBlock implements Ticki
     }
 
     @Override
-    public InteractionResult use(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, InteractionHand pHand, BlockHitResult pHit) {
+    protected InteractionResult useWithoutItem(BlockState pState, Level pLevel, BlockPos pPos, Player pPlayer, BlockHitResult pHitResult) {
         if (!pLevel.isClientSide) {
             BlockEntity entity = pLevel.getBlockEntity(pPos);
-            if (entity instanceof AutoTraderBlockEntity) {
-                NetworkHooks.openScreen((ServerPlayer) pPlayer, (MenuProvider) entity, pPos);
+            if (entity instanceof AutoTraderBlockEntity blockEntity && pPlayer instanceof ServerPlayer serverPlayer) {
+                serverPlayer.openMenu(blockEntity, buf -> buf.writeBlockPos(pPos));
             } else {
                 throw new IllegalStateException("No Container Provider for Auto Trader!");
             }
         }
         return InteractionResult.sidedSuccess(pLevel.isClientSide());
     }
+
+
+    @Override
+    protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
+        return null;
+    }
+
 }

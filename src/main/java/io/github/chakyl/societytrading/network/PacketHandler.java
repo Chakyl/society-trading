@@ -1,78 +1,62 @@
 package io.github.chakyl.societytrading.network;
 
 import io.github.chakyl.societytrading.SocietyTrading;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.network.simple.SimpleChannel;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
+@EventBusSubscriber(modid = SocietyTrading.MODID)
 public class PacketHandler {
-    private static final SimpleChannel INSTANCE = NetworkRegistry.ChannelBuilder.named(
-                    new ResourceLocation(SocietyTrading.MODID, "main"))
-            .serverAcceptedVersions((version) -> true)
-            .clientAcceptedVersions((version) -> true)
-            .networkProtocolVersion(() -> String.valueOf(1))
-            .simpleChannel();
 
-    public static void register() {
-        INSTANCE.messageBuilder(ServerBoundTradeButtonClickPacket.class, 0, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(ServerBoundTradeButtonClickPacket::encode)
-                .decoder(ServerBoundTradeButtonClickPacket::new)
-                .consumerMainThread(ServerBoundTradeButtonClickPacket::handle)
-                .add();
+    @SubscribeEvent
+    public static void register(final RegisterPayloadHandlersEvent event) {
+        final PayloadRegistrar registrar = event.registrar("1");
 
-        INSTANCE.messageBuilder(ServerBoundOpenShopMenuPacket.class, 1, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(ServerBoundOpenShopMenuPacket::encode)
-                .decoder(ServerBoundOpenShopMenuPacket::new)
-                .consumerMainThread(ServerBoundOpenShopMenuPacket::handle)
-                .add();
-
-        INSTANCE.messageBuilder(ServerBoundSearchPacket.class, 2, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(ServerBoundSearchPacket::encode)
-                .decoder(ServerBoundSearchPacket::new)
-                .consumerMainThread(ServerBoundSearchPacket::handle)
-                .add();
-
-        INSTANCE.messageBuilder(ServerBoundTriggerBalanceSyncPacket.class, 3, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(ServerBoundTriggerBalanceSyncPacket::encode)
-                .decoder(ServerBoundTriggerBalanceSyncPacket::new)
-                .consumerMainThread(ServerBoundTriggerBalanceSyncPacket::handle)
-                .add();
-
-        INSTANCE.messageBuilder(ClientBoundBalancePacket.class, 4, NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(ClientBoundBalancePacket::encode)
-                .decoder(ClientBoundBalancePacket::new)
-                .consumerMainThread(ClientBoundBalancePacket::handle)
-                .add();
-
-        INSTANCE.messageBuilder(ServerBoundAutoTradeButtonClickPacket.class, 5, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(ServerBoundAutoTradeButtonClickPacket::encode)
-                .decoder(ServerBoundAutoTradeButtonClickPacket::new)
-                .consumerMainThread(ServerBoundAutoTradeButtonClickPacket::handle)
-                .add();
-
-        INSTANCE.messageBuilder(ServerBoundOpenSelectorMenuPacket.class, 6, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(ServerBoundOpenSelectorMenuPacket::encode)
-                .decoder(ServerBoundOpenSelectorMenuPacket::new)
-                .consumerMainThread(ServerBoundOpenSelectorMenuPacket::handle)
-                .add();
-
-//        INSTANCE.messageBuilder(ClientBoundAutoTradeSelectedPacket.class, 7, NetworkDirection.PLAY_TO_CLIENT)
-//                .encoder(ClientBoundAutoTradeSelectedPacket::encode)
-//                .decoder(ClientBoundAutoTradeSelectedPacket::new)
-//                .consumerMainThread(ClientBoundAutoTradeSelectedPacket::handle)
-//                .add();
-
+        registrar.playToServer(
+                ServerBoundTradeButtonClickPacket.TYPE,
+                ServerBoundTradeButtonClickPacket.STREAM_CODEC,
+                ServerBoundTradeButtonClickPacket::handle
+        );
+        registrar.playToServer(
+                ServerBoundOpenShopMenuPacket.TYPE,
+                ServerBoundOpenShopMenuPacket.STREAM_CODEC,
+                ServerBoundOpenShopMenuPacket::handle
+        );
+        registrar.playToServer(
+                ServerBoundSearchPacket.TYPE,
+                ServerBoundSearchPacket.STREAM_CODEC,
+                ServerBoundSearchPacket::handle
+        );
+        registrar.playToServer(
+                ServerBoundTriggerBalanceSyncPacket.TYPE,
+                ServerBoundTriggerBalanceSyncPacket.STREAM_CODEC,
+                ServerBoundTriggerBalanceSyncPacket::handle
+        );
+        registrar.playToClient(
+                ClientBoundBalancePacket.TYPE,
+                ClientBoundBalancePacket.STREAM_CODEC,
+                ClientBoundBalancePacket::handle
+        );
+        registrar.playToServer(
+                ServerBoundAutoTradeButtonClickPacket.TYPE,
+                ServerBoundAutoTradeButtonClickPacket.STREAM_CODEC,
+                ServerBoundAutoTradeButtonClickPacket::handle
+        );
+        registrar.playToServer(
+                ServerBoundOpenSelectorMenuPacket.TYPE,
+                ServerBoundOpenSelectorMenuPacket.STREAM_CODEC,
+                ServerBoundOpenSelectorMenuPacket::handle
+        );
     }
 
-    public static <MSG> void sendToServer(MSG message) {
-        INSTANCE.send(PacketDistributor.SERVER.noArg(), message);
+    public static <MSG extends net.minecraft.network.protocol.common.custom.CustomPacketPayload> void sendToServer(MSG message) {
+        PacketDistributor.sendToServer(message);
     }
 
-    public static <MSG> void sendToPlayer(MSG message, ServerPlayer player) {
-        INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), message);
+    public static <MSG extends net.minecraft.network.protocol.common.custom.CustomPacketPayload> void sendToPlayer(MSG message, ServerPlayer player) {
+        PacketDistributor.sendToPlayer(player, message);
     }
-
 }
