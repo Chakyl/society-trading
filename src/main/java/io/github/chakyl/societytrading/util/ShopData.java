@@ -1,5 +1,7 @@
 package io.github.chakyl.societytrading.util;
 
+import dev.latvian.mods.kubejs.KubeJS;
+import dev.latvian.mods.kubejs.core.PlayerKJS;
 import dev.latvian.mods.kubejs.stages.Stages;
 import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import io.github.chakyl.societytrading.SocietyTrading;
@@ -7,11 +9,14 @@ import io.github.chakyl.societytrading.data.CustomSelector;
 import io.github.chakyl.societytrading.data.CustomSelectorRegistry;
 import io.github.chakyl.societytrading.data.Shop;
 import io.github.chakyl.societytrading.data.ShopRegistry;
+import io.github.chakyl.societytrading.registry.ModElements;
+import io.github.chakyl.societytrading.tradelimits.TradeLimit;
 import io.github.chakyl.societytrading.trading.RandomSetShopOffers;
 import io.github.chakyl.societytrading.trading.ShopOffer;
 import io.github.chakyl.societytrading.trading.ShopOffers;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -46,16 +51,15 @@ public class ShopData {
                     flag = false;
                 }
             }
-            // TODO: Kubejs Stages
-//            if (SocietyTrading.KUBEJS_INSTALLED) {
-//                if (!shop.stageRequired().isEmpty() && !Stages.get(player).has(shop.stageRequired())) {
-//                    flag = false;
-//                }
-//                if (!shop.stageOverride().isEmpty() && Stages.get(player).has(shop.stageRequired())) {
-//                    flag = true;
-//                }
-//            }
+            if (SocietyTrading.KUBEJS_INSTALLED) {
 
+                if (!shop.stageRequired().isEmpty() && !((PlayerKJS) player).kjs$getStages().has(shop.stageRequired())) {
+                    flag = false;
+                }
+                if (!shop.stageOverride().isEmpty() && ((PlayerKJS) player).kjs$getStages().has(shop.stageRequired())) {
+                    flag = true;
+                }
+            }
             if (flag) {
                 newShops.add(shop);
             }

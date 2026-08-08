@@ -1,5 +1,6 @@
 package io.github.chakyl.societytrading.trading;
 
+import dev.latvian.mods.kubejs.core.PlayerKJS;
 import dev.latvian.mods.kubejs.stages.Stages;
 import io.github.chakyl.societytrading.SocietyTrading;
 import net.minecraft.nbt.NbtUtils;
@@ -102,18 +103,17 @@ public class ShopOffer {
     }
 
     public boolean playerCanSee(Player player) {
-        // TODO: Kubejs STages
-//        if (player != null && SocietyTrading.KUBEJS_INSTALLED) {
-//            if (!this.stageOverride.isEmpty() && Stages.get(player).has(this.stageOverride)) {
-//                return true;
-//            }
-//            if (!this.stageRemoved.isEmpty() && Stages.get(player).has(this.stageRemoved)) {
-//                return false;
-//            }
-//            if (!this.stageRequired.isEmpty() && !Stages.get(player).has(this.stageRequired)) {
-//                return false;
-//            }
-//        }
+        if (player != null && SocietyTrading.KUBEJS_INSTALLED) {
+            if (!this.stageOverride.isEmpty() && ((PlayerKJS) player).kjs$getStages().has(this.stageOverride)) {
+                return true;
+            }
+            if (!this.stageRemoved.isEmpty() && ((PlayerKJS) player).kjs$getStages().has(this.stageRemoved)) {
+                return false;
+            }
+            if (!this.stageRequired.isEmpty() && !((PlayerKJS) player).kjs$getStages().has(this.stageRequired)) {
+                return false;
+            }
+        }
         if (player != null && SocietyTrading.SERENE_SEASONS_INSTALLED) {
             if (!this.seasonsRequired.isEmpty() && !this.seasonsRequired.contains(SeasonHelper.getSeasonState(player.level()).getSubSeason().getSerializedName())) {
                 return false;
