@@ -50,7 +50,6 @@ public class ShopMenu extends AbstractContainerMenu {
     private final Container playerInventory;
     private ShopOffer selectedTrade;
     private ShopOffers trades;
-    private int quickSlotIteration = 0;
     private int playerBalance = 0;
     private long lastSoundTime;
     protected final DataSlot selectedTradeSlot = DataSlot.standalone();
@@ -125,7 +124,6 @@ public class ShopMenu extends AbstractContainerMenu {
         for (ShopOffer offer : this.trades) {
             if (tradeId.equals(offer.getTradeId())) {
                 this.setSelectedTrade(offer);
-                this.quickSlotIteration = 0;
                 this.updateResultSlot();
                 return true;
             }
@@ -158,7 +156,7 @@ public class ShopMenu extends AbstractContainerMenu {
         if (GeneralUtils.atTradeLimit(this.player, selectedTrade)) {
             return false;
         }
-        return this.getConsumedMaterialItems(selectedTrade) != null && GeneralUtils.canAffordOrNotRelevant(selectedTrade, this.playerBalance);
+        return this.getConsumedMaterialItems(selectedTrade) != null && GeneralUtils.canAffordOrNotRelevant(selectedTrade, this.fetchPlayerBalance());
     }
 
     public void trade(ShopOffer offer, Inventory pPlayerInventory) {
@@ -296,40 +294,50 @@ public class ShopMenu extends AbstractContainerMenu {
         return pSlot != this.resultSlot && super.canTakeItemForPickAll(pStack, pSlot);
     }
 
+    // evil
     @Override
     public ItemStack quickMoveStack(Player pPlayer, int pIndex) {
         ItemStack stack = ItemStack.EMPTY;
         Slot slot = this.slots.get(pIndex);
-        if (slot.getItem().getCount() > 0 && this.quickSlotIteration < slot.getItem().getMaxStackSize() / slot.getItem().getCount()) {
-            this.quickSlotIteration++;
-            if (slot.hasItem()) {
-                ItemStack slotStack = slot.getItem();
-                stack = slotStack.copy();
-                if (pIndex == this.resultSlot.index) {
-                    Item item = slotStack.getItem();
-                    item.onCraftedBy(slotStack, pPlayer.level(), pPlayer);
-                    if (!this.moveItemStackTo(slotStack, 0, this.slots.size() - 1, true)) {
-                        return ItemStack.EMPTY;
-                    }
-                    slot.onQuickCraft(slotStack, stack);
-                }
 
-                if (slotStack.isEmpty()) {
-                    slot.setByPlayer(ItemStack.EMPTY);
-                }
+        if (slot.hasItem()) {
+            ItemStack slotstack = slot.getItem();
+            stack = slotstack.copy();
 
-                slot.setChanged();
+            if (pIndex == this.resultSlot.index) {
+                Item item = slotstack.getItem();
+                item.onCraftedBy(slotstack, pPlayer.level(), pPlayer);
 
-                if (slotStack.getCount() == stack.getCount()) {
+                if (!this.moveItemStackTo(slotstack, 0, this.slots.size() - 1, true)) {
                     return ItemStack.EMPTY;
                 }
-
-                slot.onTake(pPlayer, slotStack);
-                this.broadcastChanges();
+                slot.onQuickCraft(slotstack, stack);
+            } else {
+                if (pIndex < 27) {
+                    if (!this.moveItemStackTo(slotstack, 27, this.slots.size(), false)) {
+                        return ItemStack.EMPTY;
+                    }
+                } else {
+                    if (!this.moveItemStackTo(slotstack, 0, 27, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                }
             }
-        } else {
-            this.quickSlotIteration = 0;
+
+            if (slotstack.isEmpty()) {
+                slot.setByPlayer(ItemStack.EMPTY);
+            } else {
+                slot.setChanged();
+            }
+
+            if (slotstack.getCount() == stack.getCount()) {
+                return ItemStack.EMPTY;
+            }
+
+            slot.onTake(pPlayer, slotstack);
+            this.broadcastChanges();
         }
+
         return stack;
     }
 
@@ -421,7 +429,21 @@ public class ShopMenu extends AbstractContainerMenu {
         @Override
         public void onTake(Player player, ItemStack stack) {
             stack.onCraftedBy(player.level(), player, stack.getCount());
-            ShopMenu.this.onTrade(player);
+            if (!player.level().isClientSide() && ShopMenu.this.selectedTrade != null) {
+                if (ShopMenu.this.canTradeFor(ShopMenu.this.selectedTrade)) {
+                    ShopMenu.this.trade(ShopMenu.this.selectedTrade, player.getInventory());
+                } else {
+                    this.set(ItemStack.EMPTY);
+                }
+            }
+
+            ShopMenu.this.updateResultSlot();
+            long time = level.getGameTime();
+            if (ShopMenu.this.lastSoundTime != time) {
+                ShopMenu.this.lastSoundTime = time;
+                level.playSound(null, player, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.2F, Mth.randomBetween(player.level().getRandom(), 1.2F, 0.0F));
+            }
+
             this.set(stack);
             super.onTake(player, stack);
         }
@@ -431,18 +453,6 @@ public class ShopMenu extends AbstractContainerMenu {
             int i = pNewStack.getCount() - pOldStack.getCount();
             if (i > 0) {
                 this.onQuickCraft(pNewStack, i);
-            }
-
-        }
-    }
-
-    private void onTrade(Player player) {
-        if (this.selectedTrade != null && this.canTradeFor(this.selectedTrade)) {
-            this.trade(this.selectedTrade, player.getInventory());
-            ShopMenu.this.updateResultSlot();
-            long time = level.getGameTime();
-            if (this.lastSoundTime != (this.lastSoundTime = time)) {
-                level.playSound(null, player, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.2F, Mth.randomBetween(player.level().getRandom(), 1.2F, 0.0F));
             }
         }
     }
