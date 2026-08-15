@@ -1,9 +1,7 @@
 package io.github.chakyl.societytrading.trading;
 
 import dev.latvian.mods.kubejs.core.PlayerKJS;
-import dev.latvian.mods.kubejs.stages.Stages;
 import io.github.chakyl.societytrading.SocietyTrading;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;

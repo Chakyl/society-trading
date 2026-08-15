@@ -6,7 +6,6 @@ import io.github.chakyl.societytrading.screen.ImageShopMenu;
 import io.github.chakyl.societytrading.screen.SelectorMenu;
 import io.github.chakyl.societytrading.screen.ShopMenu;
 import io.github.chakyl.societytrading.screen.ThinShopMenu;
-import io.github.chakyl.societytrading.tradelimits.TradeLimit;
 import io.github.chakyl.societytrading.trading.ShopOffer;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;

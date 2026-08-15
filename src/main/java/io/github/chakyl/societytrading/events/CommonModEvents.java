@@ -2,9 +2,9 @@ package io.github.chakyl.societytrading.events;
 
 import io.github.chakyl.societytrading.SocietyTrading;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.neoforged.fml.ModList;
 
 @EventBusSubscriber(modid = SocietyTrading.MODID)
 public class CommonModEvents {

@@ -1,7 +1,6 @@
 package io.github.chakyl.societytrading.screen;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.data.Shop;
 import io.github.chakyl.societytrading.util.ScreenUtils;
 import net.minecraft.ChatFormatting;

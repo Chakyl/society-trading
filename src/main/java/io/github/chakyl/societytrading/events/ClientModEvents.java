@@ -3,13 +3,10 @@ package io.github.chakyl.societytrading.events;
 import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.registry.ModElements;
 import io.github.chakyl.societytrading.screen.*;
-import net.minecraft.client.gui.screens.MenuScreens;
-import net.minecraft.client.gui.screens.MenuScreens;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
 @OnlyIn(Dist.CLIENT)

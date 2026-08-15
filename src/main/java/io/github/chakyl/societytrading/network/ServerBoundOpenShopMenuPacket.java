@@ -2,7 +2,6 @@ package io.github.chakyl.societytrading.network;
 
 
 import dev.shadowsoffire.placebo.reload.DynamicHolder;
-import io.github.chakyl.societytrading.SocietyTrading;
 import io.github.chakyl.societytrading.data.Shop;
 import io.github.chakyl.societytrading.data.ShopRegistry;
 import io.github.chakyl.societytrading.screen.SelectorMenu;
