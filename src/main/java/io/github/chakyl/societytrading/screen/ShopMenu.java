@@ -50,6 +50,7 @@ public class ShopMenu extends AbstractContainerMenu {
     private final Container playerInventory;
     private ShopOffer selectedTrade;
     private ShopOffers trades;
+    private int quickSlotIteration = 0;
     private int playerBalance = 0;
     private long lastSoundTime;
     protected final DataSlot selectedTradeSlot = DataSlot.standalone();
@@ -113,7 +114,9 @@ public class ShopMenu extends AbstractContainerMenu {
         this.selectedTradeSlot.set(Math.max(syncIndex, 0));
     }
 
-    public String getPreviousSelector() { return this.previousSelector; }
+    public String getPreviousSelector() {
+        return this.previousSelector;
+    }
 
     public ShopOffer getSelectedTrade() {
         return selectedTrade;
@@ -124,6 +127,7 @@ public class ShopMenu extends AbstractContainerMenu {
         for (ShopOffer offer : this.trades) {
             if (tradeId.equals(offer.getTradeId())) {
                 this.setSelectedTrade(offer);
+                this.quickSlotIteration = 0;
                 this.updateResultSlot();
                 return true;
             }
@@ -299,8 +303,8 @@ public class ShopMenu extends AbstractContainerMenu {
     public ItemStack quickMoveStack(Player pPlayer, int pIndex) {
         ItemStack stack = ItemStack.EMPTY;
         Slot slot = this.slots.get(pIndex);
-
-        if (slot.hasItem()) {
+        if (slot.hasItem() && this.quickSlotIteration < slot.getItem().getMaxStackSize() / slot.getItem().getCount()) {
+            this.quickSlotIteration++;
             ItemStack slotstack = slot.getItem();
             stack = slotstack.copy();
 
@@ -336,6 +340,8 @@ public class ShopMenu extends AbstractContainerMenu {
 
             slot.onTake(pPlayer, slotstack);
             this.broadcastChanges();
+        } else {
+            this.quickSlotIteration = 0;
         }
 
         return stack;
