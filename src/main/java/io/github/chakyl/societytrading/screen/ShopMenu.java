@@ -50,6 +50,7 @@ public class ShopMenu extends AbstractContainerMenu {
     private final Container playerInventory;
     private ShopOffer selectedTrade;
     private ShopOffers trades;
+    private int quickSlotIteration = 0;
     private int playerBalance = 0;
     private long lastSoundTime;
     protected final DataSlot selectedTradeSlot = DataSlot.standalone();
@@ -126,6 +127,7 @@ public class ShopMenu extends AbstractContainerMenu {
         for (ShopOffer offer : this.trades) {
             if (tradeId.equals(offer.getTradeId())) {
                 this.setSelectedTrade(offer);
+                this.quickSlotIteration = 0;
                 this.updateResultSlot();
                 return true;
             }
@@ -303,42 +305,45 @@ public class ShopMenu extends AbstractContainerMenu {
         ItemStack stack = ItemStack.EMPTY;
         Slot slot = this.slots.get(pIndex);
 
-        if (slot.hasItem()) {
-            ItemStack slotstack = slot.getItem();
-            stack = slotstack.copy();
+        if (slot.hasItem() && this.quickSlotIteration < slot.getItem().getMaxStackSize() / slot.getItem().getCount()) {
+            this.quickSlotIteration++;
+            ItemStack slotStack = slot.getItem();
+            stack = slotStack.copy();
 
             if (pIndex == this.resultSlot.index) {
-                Item item = slotstack.getItem();
-                item.onCraftedBy(slotstack, pPlayer.level(), pPlayer);
+                Item item = slotStack.getItem();
+                item.onCraftedBy(slotStack, pPlayer.level(), pPlayer);
 
-                if (!this.moveItemStackTo(slotstack, 0, this.slots.size() - 1, true)) {
+                if (!this.moveItemStackTo(slotStack, 0, this.slots.size() - 1, true)) {
                     return ItemStack.EMPTY;
                 }
-                slot.onQuickCraft(slotstack, stack);
+                slot.onQuickCraft(slotStack, stack);
             } else {
                 if (pIndex < 27) {
-                    if (!this.moveItemStackTo(slotstack, 27, this.slots.size(), false)) {
+                    if (!this.moveItemStackTo(slotStack, 27, this.slots.size(), false)) {
                         return ItemStack.EMPTY;
                     }
                 } else {
-                    if (!this.moveItemStackTo(slotstack, 0, 27, false)) {
+                    if (!this.moveItemStackTo(slotStack, 0, 27, false)) {
                         return ItemStack.EMPTY;
                     }
                 }
             }
 
-            if (slotstack.isEmpty()) {
+            if (slotStack.isEmpty()) {
                 slot.setByPlayer(ItemStack.EMPTY);
             } else {
                 slot.setChanged();
             }
 
-            if (slotstack.getCount() == stack.getCount()) {
+            if (slotStack.getCount() == stack.getCount()) {
                 return ItemStack.EMPTY;
             }
 
-            slot.onTake(pPlayer, slotstack);
+            slot.onTake(pPlayer, slotStack);
             this.broadcastChanges();
+        } else {
+            this.quickSlotIteration = 0;
         }
 
         return stack;
