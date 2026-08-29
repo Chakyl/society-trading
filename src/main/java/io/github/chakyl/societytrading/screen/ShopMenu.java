@@ -2,6 +2,7 @@ package io.github.chakyl.societytrading.screen;
 
 import dev.ithundxr.createnumismatics.Numismatics;
 import dev.ithundxr.createnumismatics.content.backend.BankAccount;
+import dev.ithundxr.createnumismatics.content.backend.ReasonHolder;
 import dev.ithundxr.createnumismatics.registry.NumismaticsTags;
 import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import io.github.chakyl.societytrading.SocietyTrading;
@@ -169,7 +170,7 @@ public class ShopMenu extends AbstractContainerMenu {
             this.removeItems(items, pPlayerInventory, offer);
         }
         if (this.playerBalance > 0 && offer.hasNumismaticsCost()) {
-            this.getPlayerAccount().deduct(offer.getNumismaticsCost());
+            this.getPlayerAccount().deduct(offer.getNumismaticsCost(), ReasonHolder.IGNORED);
             this.updateBalance();
         }
         if (offer.getLimit() > 0) {

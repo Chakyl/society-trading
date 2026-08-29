@@ -2,6 +2,7 @@ package io.github.chakyl.societytrading.blockentity;
 
 import dev.ithundxr.createnumismatics.Numismatics;
 import dev.ithundxr.createnumismatics.content.backend.BankAccount;
+import dev.ithundxr.createnumismatics.content.backend.ReasonHolder;
 import dev.ithundxr.createnumismatics.registry.NumismaticsTags;
 import dev.shadowsoffire.placebo.block_entity.TickingBlockEntity;
 import io.github.chakyl.societytrading.SocietyTrading;
@@ -191,7 +192,7 @@ public class AutoTraderBlockEntity extends BlockEntity implements TickingBlockEn
         }
         if (shouldAttemptPurchase() && autoTraderCanPurchase()) {
             BankAccount cardAccount = getCardAccount();
-            if (cardAccount != null) cardAccount.deduct(this.selectedOffer.getNumismaticsCost());
+            if (cardAccount != null) cardAccount.deduct(this.selectedOffer.getNumismaticsCost(), ReasonHolder.IGNORED);
         } else if (!this.selectedOffer.getCostB().isEmpty()) {
             this.inputInventoryB.getStackInSlot(0).shrink(this.selectedOffer.getCostB().getCount());
         }
