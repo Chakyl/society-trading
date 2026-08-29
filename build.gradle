@@ -154,8 +154,8 @@ dependencies {
     implementation "curse.maven:serene-seasons-291874:6182596"
     implementation "curse.maven:glitchcore-955399:8109792"
     // Numismatics Support
-    implementation "curse.maven:create-numismatics-utils-1339392:8265783"
-    implementation "curse.maven:numismatics-889722:7948018"
+    implementation "curse.maven:create-numismatics-utils-1339392:8757462"
+    implementation "curse.maven:numismatics-889722:8745418"
     implementation "curse.maven:create-328085:7963363"
     implementation "curse.maven:curios-309927:6529130"
     // Controllable
