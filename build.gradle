@@ -35,6 +35,24 @@ repositories {
             includeGroup "curse.maven"
         }
     }
+    maven {
+        url "https://mvn.devos.one/snapshots"
+    }
+    maven {
+        url "https://maven.createmod.net"
+    }
+    maven {
+        url "https://maven.ithundxr.dev/mirror"
+    }
+    maven {
+        url "https://maven.ithundxr.dev"
+    }
+    maven {
+        url "https://maven.ithundxr.dev/snapshots"
+        content {
+            includeGroup "dev.ithundxr.createnumismatics"
+        }
+    }
 }
 
 base {
@@ -155,7 +173,7 @@ dependencies {
     implementation "curse.maven:glitchcore-955399:8109792"
     // Numismatics Support
     implementation "curse.maven:create-numismatics-utils-1339392:8757462"
-    implementation "curse.maven:numismatics-889722:8745418"
+    implementation "dev.ithundxr.createnumismatics:CreateNumismatics-neoforge-1.21.1:1.1.0+neoforge-mc1.21.1-build.694"
     implementation "curse.maven:create-328085:7963363"
     implementation "curse.maven:curios-309927:6529130"
     // Controllable

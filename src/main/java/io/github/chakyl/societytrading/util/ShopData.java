@@ -137,7 +137,12 @@ public class ShopData {
                     default -> player.level().random;
                 };
                 RandomSetShopOffers rsClone = (RandomSetShopOffers) randomSet.clone();
-                for (int i = 0; i < randomSet.getRolledCount(); i++) {
+                rsClone.removeIf(offer -> !offer.playerCanSee(player));
+                int possibleRolledCount = Math.min(randomSet.getRolledCount(), rsClone.size());
+                if (randomSet.getRolledCount() > rsClone.size()) {
+                    SocietyTrading.LOGGER.warn("random_set for the shop has a higher rolled_count (" + randomSet.getRolledCount() + ") than there are visible trades (" + rsClone.size() + ")! Remove restrictions on trades or add some more?");
+                }
+                for (int i = 0; i < possibleRolledCount; i++) {
                     if (rsClone.size() > 1) {
                         int roll = random.nextInt(rsClone.size());
                         randomizedOffers.add(rsClone.get(roll));
