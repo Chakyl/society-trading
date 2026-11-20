@@ -27,7 +27,7 @@ public class ShopData {
         DynamicHolder<CustomSelector> selector = CustomSelectorRegistry.INSTANCE.holder(ResourceLocation.parse("society_trading:" + selectorId));
         if (selector.isBound()) {
             for (String shopId : selector.get().shopIds()) {
-                DynamicHolder<Shop> shop = ShopRegistry.INSTANCE.holder(ResourceLocation.parse("society_trading:" + selectorId));
+                DynamicHolder<Shop> shop = ShopRegistry.INSTANCE.holder(ResourceLocation.parse("society_trading:" + shopId));
                 if (shop.isBound()) {
                     newShops.add(shop.get());
                 }
